@@ -21,6 +21,7 @@ namespace SwishApiConsoleTest
                 // All OK
                 string urlForCheckingPaymentStatus = response.Location;
 
+                // If you do a webbapplication you here should wait some time, showing a "loading" view or something and try to do the payment status check as below, you maybe have some ajax request doing a call to a actionresult doing this code
                 // Wait so that the payment request has been processed
                 System.Threading.Thread.Sleep(5000);
 
@@ -42,6 +43,7 @@ namespace SwishApiConsoleTest
                             // Request OK
                             string urlForCheckingRefundStatus = refundResponse.Location;
 
+                            // If you do a webbapplication you here should wait some time, showing a "loading" view or something and try to do the refund status check as below, you maybe have some ajax request doing a call to a actionresult doing this code
                             // Wait so that the refund has been processed
                             System.Threading.Thread.Sleep(5000);
 
