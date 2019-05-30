@@ -12,6 +12,13 @@ I detta git repository ingår en test console application för testning, som är
 
 Console appen gör en Payment Request, en kontroll av statusen på Payment Request och sedan återköper betalningen och kollar statusen på återköpet.
 
+## Installera
+Antingen installerar du class library:et från detta repository eller så installerar du det genom NuGet: https://www.nuget.org/packages/SwishApi/1.0.0
+
+```C#
+PM> Install-Package SwishApi -Version 1.0.0
+```
+
 ## Kom igång enkelt
 
 Förutom att du har test console appen så kommer här lite kodsnuttar på från console appen.
