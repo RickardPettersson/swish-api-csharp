@@ -67,7 +67,7 @@ else
 
 ```C#
 // The values in to this Refund method you should have saved from the payment, this code snippet using the value from the console code with response object
-var refundResponse = client.Refund(statusResponse.paymentReference, statusResponse.amount, "Återköp");
+var refundResponse = client.Refund(statusResponse.paymentReference, statusResponse.amount, "Återköp", "https://tabetaltmedswish.se/Test/RefundCallback/");
 
 if (string.IsNullOrEmpty(refundResponse.Error))
 {
@@ -97,6 +97,74 @@ else
 {
 	// ERROR
 	Console.WriteLine("Refund Error: " + refundResponse.Error);
+}
+```
+
+### Callbacks
+
+Här finns kod för ett ASP.NET MVC 5 projekt och Callback kod för både payment och refund, tagna från github repositoryt: https://github.com/RickardPettersson/swish-for-handel-csharp
+
+```C#
+public string Callback()
+{
+	Stream req = Request.InputStream;
+	req.Seek(0, System.IO.SeekOrigin.Begin);
+	string json = new StreamReader(req).ReadToEnd();
+
+		SwishCheckPaymentRequestStatusResponse resultObject = JsonConvert.DeserializeObject<SwishCheckPaymentRequestStatusResponse>(json);
+
+	switch (resultObject.status)
+	{
+		case "CREATED":
+			// Borde kanske alldrig få CREATED här...
+			break;
+		case "PAID":
+			// Betalningen är klar
+			break;
+		case "DECLINED":
+			// Användaren avbröt betalningen
+			break;
+		case "ERROR":
+			// Något gick fel, om betalningen inte sker inom 3 minuter skickas ERROR
+			break;
+	}
+
+	// When someone like to use this live i should log this and maybe change the status of some order or somethign to be paid or what the status says.
+	// To make a refund you need to save the value of paymentReference
+	// var paymentReference = resultObject.paymentReference;
+
+
+	return "OK";
+}
+
+public string RefundCallback()
+{
+	// Exempel Callback json sträng
+	// 
+	Stream req = Request.InputStream;
+	req.Seek(0, System.IO.SeekOrigin.Begin);
+	string json = new StreamReader(req).ReadToEnd();
+
+	SwishRefundSatusCheckResponse resultObject = JsonConvert.DeserializeObject<SwishRefundSatusCheckResponse>(json);
+
+	switch (resultObject.status)
+	{
+		case "DEBITED,":
+			// Återköpt
+			break;
+		case "PAID":
+			// Betald
+			break;
+		case "ERROR":
+			// Något gick fel
+			break;
+	}
+
+	// When someone like to use this live i should log this and maybe change the status of some order or something to be repaid or what the status says.
+	// Use payerPaymentReference to get the order
+	// var paymentref = resultObject.payerPaymentReference;
+
+	return "OK";
 }
 ```
 

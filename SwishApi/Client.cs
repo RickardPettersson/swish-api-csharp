@@ -151,14 +151,14 @@ namespace SwishApi
             }
         }
 
-        public RefundResponse Refund(string originalPaymentReference, double amount, string message)
+        public RefundResponse Refund(string originalPaymentReference, double amount, string message, string refundCallbackUrl)
         {
             try
             {
                 var refundData = new RefundData()
                 {
                     originalPaymentReference = originalPaymentReference,
-                    callbackUrl = _callbackUrl,
+                    callbackUrl = refundCallbackUrl,
                     payerAlias = _payeeAlias,
                     amount = amount.ToString(),
                     currency = "SEK",

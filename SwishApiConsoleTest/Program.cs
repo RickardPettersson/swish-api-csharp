@@ -36,7 +36,7 @@ namespace SwishApiConsoleTest
 
                     if (statusResponse.status == "PAID")
                     {
-                        var refundResponse = client.Refund(statusResponse.paymentReference, statusResponse.amount, "Återköp");
+                        var refundResponse = client.Refund(statusResponse.paymentReference, statusResponse.amount, "Återköp", "https://tabetaltmedswish.se/Test/RefundCallback/");
 
                         if (string.IsNullOrEmpty(refundResponse.Error))
                         {
