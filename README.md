@@ -2,7 +2,7 @@
 
 ---
 
-Simple class library built in .Net Standard Library to handle API calls to Swish API calls.
+Enkelt class library byggt i .Net Standard Library för att hantera API anrop för Swish för Handel.
 
 Till .Net Standard Library:et ingår även en test console application för testning, allt uppsatt att köras direkt mot GetSwish ABs Test miljö med test certifikat.
 
