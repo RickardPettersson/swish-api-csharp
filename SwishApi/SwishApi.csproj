@@ -13,6 +13,9 @@
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageTags>Swish, .Net, C#, GetSwish AB</PackageTags>
     <RepositoryType>GIT</RepositoryType>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

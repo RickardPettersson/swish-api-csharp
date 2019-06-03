@@ -89,8 +89,14 @@ namespace SwishApi
                 }
                 else
                 {
+                    string location = string.Empty;
 
-                    string location = response.Headers.ToList().Find(x => x.Name == "Location").Value.ToString();
+                    var headers = response.Headers.ToList();
+
+                    if (headers.Any(x => x.Name == "Location"))
+                    {
+                        location = response.Headers.ToList().Find(x => x.Name == "Location").Value.ToString();
+                    }
 
                     return new PaymentRequestECommerceResponse()
                     {
@@ -105,6 +111,75 @@ namespace SwishApi
                 {
                     Error = ex.ToString(),
                     Location = ""
+                };
+            }
+        }
+
+        public PaymentRequestMCommerceResponse MakePaymentRequestMCommerce(int amount, string message)
+        {
+            try
+            {
+                var requestData = new PaymentRequestMCommerceData()
+                {
+                    payeePaymentReference = _payeePaymentReference,
+                    callbackUrl = _callbackUrl,
+                    payeeAlias = _payeeAlias,
+                    amount = amount.ToString(),
+                    currency = "SEK",
+                    message = message
+                };
+
+                // Create a RestSharp RestClient objhect with the base URL
+                var client = new RestClient(_baseAPIUrl);
+
+                // Create a request object with the path to the payment requests
+                var request = new RestRequest("swish-cpcapi/api/v1/paymentrequests");
+
+                // Create up a client certificate collection and import the certificate to it
+                X509Certificate2Collection clientCertificates = new X509Certificate2Collection();
+                clientCertificates.Import(_certDataBytes, _certificatePassword, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet);
+
+                // Add client certificate collection to the RestClient
+                client.ClientCertificates = clientCertificates;
+
+                // Add payment request data
+                request.AddJsonBody(requestData);
+
+                var response = client.Post(request);
+                var content = response.Content;
+
+                if (response.ErrorException != null)
+                {
+                    return new PaymentRequestMCommerceResponse()
+                    {
+                        Error = response.ErrorException.ToString(),
+                        Token = ""
+                    };
+                }
+                else
+                {
+                    string token = string.Empty;
+
+                    var headers = response.Headers.ToList();
+
+                    if (headers.Any(x => x.Name == "PaymentRequestToken"))
+                    {
+                        token = response.Headers.ToList().Find(x => x.Name == "PaymentRequestToken").Value.ToString();
+                    }
+
+                    return new PaymentRequestMCommerceResponse()
+                    {
+                        Error = "",
+                        Token = token
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new PaymentRequestMCommerceResponse()
+                {
+                    Error = ex.ToString(),
+                    Token = ""
                 };
             }
         }
@@ -253,6 +328,47 @@ namespace SwishApi
                 {
                     errorCode = "Exception",
                     errorMessage = ex.ToString()
+                };
+            }
+        }
+
+        public QRCodeResponse GetQRCode(string token, string format = "png", int size = 300, int border = 0, bool transparent = true)
+        {
+            try
+            {
+                var requestData = new QRCodeData()
+                {
+                    token = token,
+                    format = format,
+                    size = size,
+                    border = border,
+                    transparent = transparent
+                };
+
+                // Create a RestSharp RestClient objhect with the base URL
+                var client = new RestClient("https://mpc.getswish.net");
+
+                // Create a request object with the path to the payment requests
+                var request = new RestRequest("qrg-swish/api/v1/commerce");
+                
+                // Add payment request data
+                request.AddJsonBody(requestData);
+
+                var data = client.Post<QRCodeData>(request);
+
+                //var data = client.DownloadData(request);
+                
+                return new QRCodeResponse()
+                {
+                    Error = "",
+                    Data = data.RawBytes
+                };
+            }
+            catch (Exception ex)
+            {
+                return new QRCodeResponse()
+                {
+                    Error = ex.ToString()
                 };
             }
         }

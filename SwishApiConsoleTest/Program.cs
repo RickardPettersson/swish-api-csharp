@@ -4,6 +4,8 @@ namespace SwishApiConsoleTest
 {
     class Program
     {
+
+        // MainTestPaymentAndRefund
         static void Main(string[] args)
         {
             // Get the path for the test certificate in the TestCert folder in the console application folder, being always copy to the output folder
@@ -81,6 +83,32 @@ namespace SwishApiConsoleTest
                 Console.WriteLine("MakePaymentRequest - ERROR: " + response.Error);
             }
 
+
+            Console.WriteLine(">>> Press enter to exit <<<");
+            Console.ReadLine();
+        }
+
+        // MainTestQCommerce
+        static void MainTestPaymentAndRefund(string[] args)
+        {
+            // Get the path for the test certificate in the TestCert folder in the console application folder, being always copy to the output folder
+            string certificatePath = Environment.CurrentDirectory + "\\TestCert\\Swish_Merchant_TestCertificate_1231181189.p12";
+
+            // Create a Swishpi Client object with all data needed to run a test Swish payment
+            SwishApi.Client client = new SwishApi.Client(certificatePath, "swish", "https://tabetaltmedswish.se/Test/Callback/");
+
+            var responseMCommerce = client.MakePaymentRequestMCommerce(1, "Test");
+
+            var a = client.GetQRCode(responseMCommerce.Token, "svg");
+
+            if (string.IsNullOrEmpty(a.Error))
+            {
+                System.IO.File.WriteAllBytes("test.svg", a.Data);
+            }
+            else
+            {
+                Console.WriteLine("ERROR Get QR Code: " + a.Error);
+            }
 
             Console.WriteLine(">>> Press enter to exit <<<");
             Console.ReadLine();
