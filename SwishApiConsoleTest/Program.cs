@@ -9,7 +9,7 @@ namespace SwishApiConsoleTest
         static void Main(string[] args)
         {
             // Get the path for the test certificate in the TestCert folder in the console application folder, being always copy to the output folder
-            string certificatePath = Environment.CurrentDirectory + "\\TestCert\\Swish_Merchant_TestCertificate_1231181189.p12";
+            string certificatePath = Environment.CurrentDirectory + "\\TestCert\\Swish_Merchant_TestCertificate_1234679304.p12";
 
             // Create a Swishpi Client object with all data needed to run a test Swish payment
             SwishApi.Client client = new SwishApi.Client(certificatePath, "swish", "https://tabetaltmedswish.se/Test/Callback/");

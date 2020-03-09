@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="TestCert\Swish_Merchant_TestCertificate_1231181189.p12">
+    <None Update="TestCert\Swish_Merchant_TestCertificate_1234679304.p12">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
