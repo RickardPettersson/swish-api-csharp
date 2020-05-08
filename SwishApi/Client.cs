@@ -396,50 +396,7 @@ namespace SwishApi
                 };
             }
         }
-
-        public CheckRefundStatusResponse CheckRefundStatus2(string url)
-        {
-            try
-            {
-                // Create a RestSharp RestClient objhect with the base URL
-                var client = new RestClient(url);
-
-                // Create a request object with the path to the payment requests
-                var request = new RestRequest();
-
-                // Create up a client certificate collection and import the certificate to it
-                X509Certificate2Collection clientCertificates = new X509Certificate2Collection();
-                clientCertificates.Import(_certDataBytes, _certificatePassword, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet);
-
-                // Add client certificate collection to the RestClient
-                client.ClientCertificates = clientCertificates;
-                
-                var response = client.Get<CheckRefundStatusResponse>(request);
-
-                if (response.ErrorException != null)
-                {
-                    return new CheckRefundStatusResponse()
-                    {
-                        errorCode = "ERROR",
-                        errorMessage = response.ErrorException.ToString()
-                    };
-                }
-                else
-                {
-                    return response.Data;
-                }
-            }
-            catch (Exception ex)
-            {
-                return new CheckRefundStatusResponse()
-                {
-                    errorCode = "Exception",
-                    errorMessage = ex.ToString()
-                };
-            }
-        }
-
-        public QRCodeResponse GetQRCode(string token, string format = "png", int size = 300, int border = 0, bool transparent = true)
+        public QRCodeResponse GetQRCode(string token, string format = "svg", int size = 300, int border = 0, bool transparent = true)
         {
             try
             {
@@ -452,30 +409,47 @@ namespace SwishApi
                     transparent = transparent
                 };
 
-                // Create a RestSharp RestClient objhect with the base URL
-                var client = new RestClient("https://mpc.getswish.net");
+                HttpClientHandler handler = new HttpClientHandler();
+                HttpClient client = new HttpClient(handler) { BaseAddress = new Uri("https://mpc.getswish.net") };
 
-                // Create a request object with the path to the payment requests
-                var request = new RestRequest("qrg-swish/api/v1/commerce");
-                
-                // Add payment request data
-                request.AddJsonBody(requestData);
+                var httpRequestMessage = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri("https://mpc.getswish.net/qrg-swish/api/v1/commerce"),
+                    Content = new StringContent(JsonConvert.SerializeObject(requestData), Encoding.UTF8, "application/json")
+                };
 
-                var data = client.Post<QRCodeData>(request);
+                var response = client.SendAsync(httpRequestMessage).Result;
 
-                //var data = client.DownloadData(request);
-                
+                string errorMessage = string.Empty;
+                string svgData = string.Empty;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var readAsStringAsync = response.Content.ReadAsStringAsync();
+                    svgData = readAsStringAsync.Result;
+                }
+                else
+                {
+                    var readAsStringAsync = response.Content.ReadAsStringAsync();
+                    errorMessage = readAsStringAsync.Result;
+                }
+
+                client.Dispose();
+                handler.Dispose();
+
                 return new QRCodeResponse()
                 {
-                    Error = "",
-                    Data = data.RawBytes
+                    Error = errorMessage,
+                    SVGData = svgData
                 };
             }
             catch (Exception ex)
             {
                 return new QRCodeResponse()
                 {
-                    Error = ex.ToString()
+                    Error = ex.ToString(),
+                    SVGData = string.Empty
                 };
             }
         }
