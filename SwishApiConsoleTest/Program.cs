@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Net.Http;
+using System.Security.Cryptography.X509Certificates;
 
 namespace SwishApiConsoleTest
 {
     class Program
     {
-
         // MainTestPaymentAndRefund
         static void Main(string[] args)
         {
@@ -15,7 +16,7 @@ namespace SwishApiConsoleTest
             SwishApi.Client client = new SwishApi.Client(certificatePath, "swish", "https://tabetaltmedswish.se/Test/Callback/");
 
             // Make the Payement Request
-            var response = client.MakePaymentRequest("0731596605", 1, "Test");
+            var response = client.MakePaymentRequest("46731596605", 1, "Test");
 
             // Check if the payment request got success and not got any error
             if (string.IsNullOrEmpty(response.Error))
@@ -38,6 +39,7 @@ namespace SwishApiConsoleTest
 
                     if (statusResponse.status == "PAID")
                     {
+                        // "8FFBC84A91CD49A799176B1419AAE598"
                         var refundResponse = client.Refund(statusResponse.paymentReference, statusResponse.amount, "Återköp", "https://tabetaltmedswish.se/Test/RefundCallback/");
 
                         if (string.IsNullOrEmpty(refundResponse.Error))
@@ -56,7 +58,6 @@ namespace SwishApiConsoleTest
                             {
                                 // Call was maked without any problem
                                 Console.WriteLine("RefundChecKResponse - Status: " + statusResponse.status);
-
                             }
                             else
                             {

@@ -1,8 +1,12 @@
-﻿using RestSharp;
+﻿using Newtonsoft.Json;
+using RestSharp;
 using SwishApi.Models;
 using System;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 
 namespace SwishApi
 {
@@ -44,6 +48,35 @@ namespace SwishApi
             _payeePaymentReference = payeePaymentReference;
         }
 
+        private void PrepareHttpClientAndHandler(out HttpClientHandler handler, out HttpClient client)
+        {
+            // Got help for this code on https://stackoverflow.com/questions/61677247/can-a-p12-file-with-ca-certificates-be-used-in-c-sharp-without-importing-them-t
+            handler = new HttpClientHandler();
+            using (X509Store store = new X509Store(StoreName.CertificateAuthority, StoreLocation.CurrentUser))
+            {
+                store.Open(OpenFlags.ReadWrite);
+
+                var certs = new X509Certificate2Collection();
+                certs.Import(_certificatePath, _certificatePassword, X509KeyStorageFlags.DefaultKeySet);
+
+                foreach (X509Certificate2 cert in certs)
+                {
+                    if (cert.HasPrivateKey)
+                    {
+                        handler.ClientCertificates.Add(cert);
+                    }
+                    else
+                    {
+                        store.Add(cert);
+                    }
+                }
+            }
+
+            var baseAddress = new Uri(_baseAPIUrl);
+
+            client = new HttpClient(handler) { BaseAddress = baseAddress };
+        }
+
         public PaymentRequestECommerceResponse MakePaymentRequest(string phonenumber, int amount, string message)
         {
             try
@@ -57,54 +90,48 @@ namespace SwishApi
                     amount = amount.ToString(),
                     currency = "SEK",
                     message = message
-
                 };
 
-                // Create a RestSharp RestClient objhect with the base URL
-                var client = new RestClient(_baseAPIUrl);
+                HttpClientHandler handler;
+                HttpClient client;
+                PrepareHttpClientAndHandler(out handler, out client);
 
-                // Create a request object with the path to the payment requests
-                var request = new RestRequest("swish-cpcapi/api/v1/paymentrequests");
-
-                // Create up a client certificate collection and import the certificate to it
-                X509Certificate2Collection clientCertificates = new X509Certificate2Collection();
-                clientCertificates.Import(_certDataBytes, _certificatePassword, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet);
-
-                // Add client certificate collection to the RestClient
-                client.ClientCertificates = clientCertificates;
-
-                // Add payment request data
-                request.AddJsonBody(requestData);
-
-                var response = client.Post(request);
-                var content = response.Content;
-
-                if (response.ErrorException != null)
+                var httpRequestMessage = new HttpRequestMessage
                 {
-                    return new PaymentRequestECommerceResponse()
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri(_baseAPIUrl + "/swish-cpcapi/api/v1/paymentrequests"),
+                    Content = new StringContent(JsonConvert.SerializeObject(requestData), Encoding.UTF8, "application/json")
+                };
+
+                var response = client.SendAsync(httpRequestMessage).Result;
+
+                string errorMessage = string.Empty;
+                string location = string.Empty;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var headers = response.Headers.ToList();
+
+                    if (headers.Any(x => x.Key == "Location"))
                     {
-                        Error = response.ErrorException.ToString(),
-                        Location = ""
-                    };
+                        location = response.Headers.GetValues("Location").FirstOrDefault();
+                    }
                 }
                 else
                 {
-                    string location = string.Empty;
-
-                    var headers = response.Headers.ToList();
-
-                    if (headers.Any(x => x.Name == "Location"))
-                    {
-                        location = response.Headers.ToList().Find(x => x.Name == "Location").Value.ToString();
-                    }
-
-                    return new PaymentRequestECommerceResponse()
-                    {
-                        Error = "",
-                        Location = location
-                    };
+                    var readAsStringAsync = response.Content.ReadAsStringAsync();
+                    errorMessage = readAsStringAsync.Result;
                 }
-            } 
+
+                client.Dispose();
+                handler.Dispose();
+
+                return new PaymentRequestECommerceResponse()
+                {
+                    Error = errorMessage,
+                    Location = location
+                };
+            }
             catch (Exception ex)
             {
                 return new PaymentRequestECommerceResponse()
@@ -129,50 +156,45 @@ namespace SwishApi
                     message = message
                 };
 
-                // Create a RestSharp RestClient objhect with the base URL
-                var client = new RestClient(_baseAPIUrl);
+                HttpClientHandler handler;
+                HttpClient client;
+                PrepareHttpClientAndHandler(out handler, out client);
 
-                // Create a request object with the path to the payment requests
-                var request = new RestRequest("swish-cpcapi/api/v1/paymentrequests");
-
-                // Create up a client certificate collection and import the certificate to it
-                X509Certificate2Collection clientCertificates = new X509Certificate2Collection();
-                clientCertificates.Import(_certDataBytes, _certificatePassword, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet);
-
-                // Add client certificate collection to the RestClient
-                client.ClientCertificates = clientCertificates;
-
-                // Add payment request data
-                request.AddJsonBody(requestData);
-
-                var response = client.Post(request);
-                var content = response.Content;
-
-                if (response.ErrorException != null)
+                var httpRequestMessage = new HttpRequestMessage
                 {
-                    return new PaymentRequestMCommerceResponse()
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri(_baseAPIUrl + "/swish-cpcapi/api/v1/paymentrequests"),
+                    Content = new StringContent(JsonConvert.SerializeObject(requestData), Encoding.UTF8, "application/json")
+                };
+
+                var response = client.SendAsync(httpRequestMessage).Result;
+
+                string errorMessage = string.Empty;
+                string PaymentRequestToken = string.Empty;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var headers = response.Headers.ToList();
+
+                    if (headers.Any(x => x.Key == "PaymentRequestToken"))
                     {
-                        Error = response.ErrorException.ToString(),
-                        Token = ""
-                    };
+                        PaymentRequestToken = response.Headers.GetValues("PaymentRequestToken").FirstOrDefault();
+                    }
                 }
                 else
                 {
-                    string token = string.Empty;
-
-                    var headers = response.Headers.ToList();
-
-                    if (headers.Any(x => x.Name == "PaymentRequestToken"))
-                    {
-                        token = response.Headers.ToList().Find(x => x.Name == "PaymentRequestToken").Value.ToString();
-                    }
-
-                    return new PaymentRequestMCommerceResponse()
-                    {
-                        Error = "",
-                        Token = token
-                    };
+                    var readAsStringAsync = response.Content.ReadAsStringAsync();
+                    errorMessage = readAsStringAsync.Result;
                 }
+
+                client.Dispose();
+                handler.Dispose();
+
+                return new PaymentRequestMCommerceResponse()
+                {
+                    Error = errorMessage,
+                    Token = PaymentRequestToken
+                };
             }
             catch (Exception ex)
             {
@@ -188,32 +210,49 @@ namespace SwishApi
         {
             try
             {
-                // Create a RestSharp RestClient objhect with the base URL
-                var client = new RestClient(url);
+                HttpClientHandler handler;
+                HttpClient client;
+                PrepareHttpClientAndHandler(out handler, out client);
+                client.BaseAddress = new Uri(url);
 
-                // Create a request object with the path to the payment requests
-                var request = new RestRequest();
 
-                // Create up a client certificate collection and import the certificate to it
-                X509Certificate2Collection clientCertificates = new X509Certificate2Collection();
-                clientCertificates.Import(_certDataBytes, _certificatePassword, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet);
-
-                // Add client certificate collection to the RestClient
-                client.ClientCertificates = clientCertificates;
-
-                var response = client.Get<CheckPaymentRequestStatusResponse>(request);
-
-                if (response.ErrorException != null)
+                var httpRequestMessage = new HttpRequestMessage
                 {
-                    return new CheckPaymentRequestStatusResponse()
-                    {
-                        errorCode = "ERROR",
-                        errorMessage = response.ErrorException.ToString()
-                    };
+                    Method = HttpMethod.Get
+                };
+
+                var response = client.SendAsync(httpRequestMessage).Result;
+
+                string errorMessage = string.Empty;
+                string PaymentRequestToken = string.Empty;
+                CheckPaymentRequestStatusResponse r = null;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var readAsStringAsync = response.Content.ReadAsStringAsync();
+                    string jsonResponse = readAsStringAsync.Result;
+
+                    r = JsonConvert.DeserializeObject<CheckPaymentRequestStatusResponse>(jsonResponse);
                 }
                 else
                 {
-                    return response.Data;
+                    var readAsStringAsync = response.Content.ReadAsStringAsync();
+                    errorMessage = readAsStringAsync.Result;
+                }
+
+                client.Dispose();
+                handler.Dispose();
+
+                if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    return new CheckPaymentRequestStatusResponse()
+                    {
+                        errorCode = "Error",
+                        errorMessage = errorMessage
+                    };
+                } else
+                {
+                    return r;
                 }
             }
             catch (Exception ex)
@@ -230,7 +269,7 @@ namespace SwishApi
         {
             try
             {
-                var refundData = new RefundData()
+                var requestData = new RefundData()
                 {
                     originalPaymentReference = originalPaymentReference,
                     callbackUrl = refundCallbackUrl,
@@ -240,45 +279,45 @@ namespace SwishApi
                     message = message
                 };
 
-                // Create a RestSharp RestClient objhect with the base URL
-                var client = new RestClient(_baseAPIUrl);
+                HttpClientHandler handler;
+                HttpClient client;
+                PrepareHttpClientAndHandler(out handler, out client);
 
-                // Create a request object with the path to the payment requests
-                var request = new RestRequest("swish-cpcapi/api/v1/refunds");
-
-                // Create up a client certificate collection and import the certificate to it
-                X509Certificate2Collection clientCertificates = new X509Certificate2Collection();
-                clientCertificates.Import(_certDataBytes, _certificatePassword, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet);
-
-                // Add client certificate collection to the RestClient
-                client.ClientCertificates = clientCertificates;
-
-                // Add payment request data
-                request.AddJsonBody(refundData);
-
-                var response = client.Post(request);
-                var content = response.Content;
-
-                // "[{\"errorCode\":\"PA01\",\"errorMessage\":null,\"additionalInformation\":null}]"
-
-                if (!response.IsSuccessful)
+                var httpRequestMessage = new HttpRequestMessage
                 {
-                    return new RefundResponse()
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri(_baseAPIUrl + "/swish-cpcapi/api/v1/refunds"),
+                    Content = new StringContent(JsonConvert.SerializeObject(requestData), Encoding.UTF8, "application/json")
+                };
+
+                var response = client.SendAsync(httpRequestMessage).Result;
+
+                string errorMessage = string.Empty;
+                string Location = string.Empty;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var headers = response.Headers.ToList();
+
+                    if (headers.Any(x => x.Key == "Location"))
                     {
-                        Error = content,
-                        Location = ""
-                    };
+                        Location = response.Headers.GetValues("Location").FirstOrDefault();
+                    }
                 }
                 else
                 {
-                    string location = response.Headers.ToList().Find(x => x.Name == "Location").Value.ToString();
-
-                    return new RefundResponse()
-                    {
-                        Error = "",
-                        Location = location
-                    };
+                    var readAsStringAsync = response.Content.ReadAsStringAsync();
+                    errorMessage = readAsStringAsync.Result;
                 }
+
+                client.Dispose();
+                handler.Dispose();
+
+                return new RefundResponse()
+                {
+                    Error = errorMessage,
+                    Location = Location
+                };
             }
             catch (Exception ex)
             {
@@ -291,6 +330,66 @@ namespace SwishApi
         }
 
         public CheckRefundStatusResponse CheckRefundStatus(string url)
+        {
+            try
+            {
+                HttpClientHandler handler;
+                HttpClient client;
+                PrepareHttpClientAndHandler(out handler, out client);
+                client.BaseAddress = new Uri(url);
+
+
+                var httpRequestMessage = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Get
+                };
+
+                var response = client.SendAsync(httpRequestMessage).Result;
+
+                string errorMessage = string.Empty;
+                string PaymentRequestToken = string.Empty;
+                CheckRefundStatusResponse r = null;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var readAsStringAsync = response.Content.ReadAsStringAsync();
+                    string jsonResponse = readAsStringAsync.Result;
+
+                    r = JsonConvert.DeserializeObject<CheckRefundStatusResponse>(jsonResponse);
+                }
+                else
+                {
+                    var readAsStringAsync = response.Content.ReadAsStringAsync();
+                    errorMessage = readAsStringAsync.Result;
+                }
+
+                client.Dispose();
+                handler.Dispose();
+
+                if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    return new CheckRefundStatusResponse()
+                    {
+                        errorCode = "Error",
+                        errorMessage = errorMessage
+                    };
+                }
+                else
+                {
+                    return r;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new CheckRefundStatusResponse()
+                {
+                    errorCode = "Exception",
+                    errorMessage = ex.ToString()
+                };
+            }
+        }
+
+        public CheckRefundStatusResponse CheckRefundStatus2(string url)
         {
             try
             {
