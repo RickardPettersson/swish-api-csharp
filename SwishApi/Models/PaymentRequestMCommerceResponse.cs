@@ -11,5 +11,6 @@ namespace SwishApi.Models
     {
         public string Error { get; set; }
         public string Token { get; set; }
+        public string Location { get; set; }
     }
 }
