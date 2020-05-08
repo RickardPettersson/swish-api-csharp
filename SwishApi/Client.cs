@@ -171,6 +171,7 @@ namespace SwishApi
 
                 string errorMessage = string.Empty;
                 string PaymentRequestToken = string.Empty;
+                string Location = string.Empty;
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -179,6 +180,11 @@ namespace SwishApi
                     if (headers.Any(x => x.Key == "PaymentRequestToken"))
                     {
                         PaymentRequestToken = response.Headers.GetValues("PaymentRequestToken").FirstOrDefault();
+                    }
+
+                    if (headers.Any(x => x.Key == "Location"))
+                    {
+                        Location = response.Headers.GetValues("Location").FirstOrDefault();
                     }
                 }
                 else
@@ -193,7 +199,8 @@ namespace SwishApi
                 return new PaymentRequestMCommerceResponse()
                 {
                     Error = errorMessage,
-                    Token = PaymentRequestToken
+                    Token = PaymentRequestToken, 
+                    Location = Location
                 };
             }
             catch (Exception ex)
@@ -201,7 +208,8 @@ namespace SwishApi
                 return new PaymentRequestMCommerceResponse()
                 {
                     Error = ex.ToString(),
-                    Token = ""
+                    Token = "",
+                    Location = ""
                 };
             }
         }
