@@ -29,91 +29,11 @@ PM> Install-Package SwishApi -Version 1.2.0
 
 Förutom att du har test console appen så kommer här lite kodsnuttar på från console appen.
 
-### Gör en Payment Request
+### Kodexempel
 
-```C#
-// Get the path for the test certificate in the TestCert folder in the console application folder, being always copy to the output folder
-string certificatePath = Environment.CurrentDirectory + "\\TestCert\\Swish_Merchant_TestCertificate_1231181189.p12";
+I repositoryt finns en Console Application som visar kod exempel hur man använder libraryt förutom Callbacks, se nedan.
 
-// Create a SwishApi Client object with all data needed to run a Swish test payment
-SwishApi.Client client = new SwishApi.Client(certificatePath, "swish", "https://tabetaltmedswish.se/Test/Callback/");
-
-// Make the Payement Request
-var response = client.MakePaymentRequest("0731596605", 1, "Test");
-
-// Check if the payment request got success and not got any error
-if (string.IsNullOrEmpty(response.Error))
-{
-    // All OK
-    string urlForCheckingPaymentStatus = response.Location;
-
-    // If you do a web application you here should wait some time, showing a "loading" view or something and try to do the payment status check as below, you maybe have some ajax request doing a call to a ActionResult doing this code
-    // Wait so that the payment request has been processed
-    System.Threading.Thread.Sleep(5000);
-
-    // Make the payment status check
-    var statusResponse = client.CheckPaymentStatus(urlForCheckingPaymentStatus);
-
-    // Check if the call is done correctly
-    if (string.IsNullOrEmpty(statusResponse.errorCode))
-    {
-        // Call was made without any problem
-        Console.WriteLine("Status: " + statusResponse.status);
-
-        // Here is where you do your thing example setting a order status to paid if statusResponse.status is PAID and save the value from statusResponse.paymentReference to be enable to do refunds
-    }
-    else
-    {
-        // ERROR
-        Console.WriteLine("CheckPaymentResponse: " + statusResponse.errorCode + " - " + statusResponse.errorMessage);
-    }
-}
-else
-{
-    // ERROR
-    Console.WriteLine("MakePaymentRequest - ERROR: " + response.Error);
-}
-```
-
-
-### Gör ett återköp
-
-```C#
-// The values in to this Refund method you should have saved from the payment, this code snippet using the value from the console code with response object
-var refundResponse = client.Refund(statusResponse.paymentReference, statusResponse.amount, "Återköp", "https://tabetaltmedswish.se/Test/RefundCallback/");
-
-if (string.IsNullOrEmpty(refundResponse.Error))
-{
-    // Request OK
-    string urlForCheckingRefundStatus = refundResponse.Location;
-
-    // If you do a web application you here should wait some time, showing a "loading" view or something and try to do the refund status check as below, you maybe have some ajax request doing a call to a actionresult doing this code
-    // Wait so that the refund has been processed
-    System.Threading.Thread.Sleep(5000);
-
-    // Check refund status
-    var refundCheckResposne = client.CheckRefundStatus(urlForCheckingRefundStatus);
-
-    if (string.IsNullOrEmpty(refundCheckResposne.errorCode))
-    {
-        // Call was made without any problem
-        Console.WriteLine("RefundChecKResponse - Status: " + statusResponse.status);
-
-    }
-    else
-    {
-        // ERROR
-        Console.WriteLine("RefundCheckResponse: " + refundCheckResposne.errorCode + " - " + refundCheckResposne.errorMessage);
-    }
-}
-else
-{
-    // ERROR
-    Console.WriteLine("Refund Error: " + refundResponse.Error);
-}
-```
-
-### Callbacks
+### Callbacks kodexempel
 
 Här finns kod för ett ASP.NET MVC 5 projekt och Callback kod för både payment och refund, tagna från GitHub repositoryt: https://github.com/RickardPettersson/swish-for-handel-csharp
 
@@ -187,9 +107,7 @@ Du hitta information om hur du skapar och hanterar ditt egna certifikat för pro
 
 Getswish AB har lanserat Swish för handel men har inte släppt några kodexempel förutom cURL exempel vilket gör det svårt att testa i Windows och att implementera Swish för handel i sitt programmeringsprojekt.
 
-Efter jag la ner väldigt många timmar för att få Swish för handel att fungera i C# så släppte jag ett GitHub repository med ett ASP.NET MVC projekt: https://github.com/RickardPettersson/swish-for-handel-csharp
-
-Men efter att fått många förfrågningar runt koden så har jag nu byggt detta .NET Standard library som jag vill försöka hålla uppdaterad.
+Efter jag la ner väldigt många timmar för att få Swish för handel att fungera i C# så har jag släppt lite olika kod exempel och till slut släppte jag detta class library för att hjälpa andra komma igång.
 
 ## Programmerat av
 
