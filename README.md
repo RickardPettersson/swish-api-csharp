@@ -6,6 +6,12 @@ Enkelt class library byggt i .NET Standard Library för att hantera API anrop f�
 
 API dokumentation direkt från Swish själva hittas på https://developer.getswish.se/merchants/ och är från den jag utgått.
 
+## Updatering 2020-05-09
+
+Efter en lång period som koden inte fungerat så har jag fått hjälp av en rad olika utvecklare och till slut fick vi veta vad som var felet och har nu åtgärdat det.
+
+NuGet paketet uppdaterat med senaste koden.
+
 ## Testa
 
 I detta git repository ingår en test console application för testning, som är uppsatt att köras direkt mot Swish testmiljö med testcertifikat.
@@ -16,7 +22,7 @@ Console appen gör en Payment Request, en kontroll av statusen på Payment Reque
 Antingen installerar du class library:et från detta repository eller så installerar du det genom NuGet: https://www.nuget.org/packages/SwishApi
 
 ```powershell
-PM> Install-Package SwishApi -Version 1.0.0
+PM> Install-Package SwishApi -Version 1.2.0
 ```
 
 ## Kom igång enkelt
