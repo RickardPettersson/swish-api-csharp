@@ -179,6 +179,10 @@ public string RefundCallback()
 }
 ```
 
+## Certifikat hantering
+
+Du hitta information om hur du skapar och hanterar ditt egna certifikat för produktion på wiki sidan [Hantera certifikat](https://github.com/RickardPettersson/swish-api-csharp/wiki/Hantera-certifikat)
+
 ## Bakgrund för projektet
 
 Getswish AB har lanserat Swish för handel men har inte släppt några kodexempel förutom cURL exempel vilket gör det svårt att testa i Windows och att implementera Swish för handel i sitt programmeringsprojekt.
