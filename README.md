@@ -6,6 +6,10 @@ Enkelt class library byggt i .NET Standard Library för att hantera API anrop f�
 
 API dokumentation direkt från Swish själva hittas på https://developer.getswish.se/merchants/ och är från den jag utgått.
 
+## Updatering 2020-05-20
+
+Jag har uppdateat GetSwish ABs test certifikat så koden fungerar i github repositoryt igen i test miljö.
+
 ## Updatering 2020-05-09
 
 Efter en lång period som koden inte fungerat så har jag fått hjälp av en rad olika utvecklare och till slut fick vi veta vad som var felet och har nu åtgärdat det.
