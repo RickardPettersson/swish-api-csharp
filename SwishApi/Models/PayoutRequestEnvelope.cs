@@ -39,7 +39,8 @@ namespace SwishApi.Models
                     {
                         var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(payload));
                         var hash = sha.ComputeHash(bytes);
-                        signature = Convert.ToBase64String(hash);
+                        var sign = csp.SignHash(hash, CryptoConfig.MapNameToOID("SHA-512"));
+                        signature = Convert.ToBase64String(sign);
                     }
                 }
                 else
