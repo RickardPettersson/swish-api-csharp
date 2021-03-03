@@ -185,7 +185,7 @@ namespace SwishApiConsoleTest
             SwishApi.Client client = new SwishApi.Client(certificatePath, "swish", "https://tabetaltmedswish.se/Test/Callback/");
             //client._enableHTTPLog = true;
 
-            var response = client.MakePayoutRequest(Guid.NewGuid().ToString("N").ToUpper(), "1234679304", "199001011234", "1.00", "Test", "7d70445ec8ef4d1e3a713427e973d097");
+            var response = client.MakePayoutRequest(Guid.NewGuid().ToString("N").ToUpper(), "1234679304", "199001019999", "1.00", "Test", "7d70445ec8ef4d1e3a713427e973d097");
 
             if (string.IsNullOrEmpty(response.Error))
             {

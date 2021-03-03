@@ -13,21 +13,31 @@ namespace SwishApi.Models
         public string callbackUrl { get; set; }
         public string signature { get; private set; }
 
-        public void buildSignature()
+        private X509Certificate2 FindSignatureCertificate(string serial)
         {
-            X509Certificate2 cert = null;
+            return FindSignatureCertificateInStore(serial, StoreLocation.CurrentUser) ?? FindSignatureCertificateInStore(serial, StoreLocation.LocalMachine);
+        }
 
-            X509Store store = new X509Store(StoreLocation.LocalMachine);
-            store.Open(OpenFlags.ReadOnly);
-            foreach (X509Certificate2 c in store.Certificates)
+        private X509Certificate2 FindSignatureCertificateInStore(string serial, StoreLocation location)
+        {
+            using (var store = new X509Store(location))
             {
-                if (c.SerialNumber.ToLower().Equals(payload.signingCertificateSerialNumber))
+                store.Open(OpenFlags.ReadOnly);
+                foreach (X509Certificate2 c in store.Certificates)
                 {
-                    cert = c;
+                    if (c.SerialNumber.ToLower().Equals(serial))
+                    {
+                        return c;
+                    }
                 }
             }
-            store.Close();
+            return null;
+        }
 
+        public void buildSignature()
+        {
+            X509Certificate2 cert = FindSignatureCertificate(payload.signingCertificateSerialNumber);
+            
             if (cert == null)
             {
                 throw new Exception("No signing certificate found!");
