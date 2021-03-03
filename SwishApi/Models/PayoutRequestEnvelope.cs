@@ -25,7 +25,7 @@ namespace SwishApi.Models
                 store.Open(OpenFlags.ReadOnly);
                 foreach (X509Certificate2 c in store.Certificates)
                 {
-                    if (c.SerialNumber.ToLower().Equals(serial))
+                    if (c.SerialNumber.ToLower().Equals(serial.ToLower()))
                     {
                         return c;
                     }
