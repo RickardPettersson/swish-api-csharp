@@ -13,40 +13,35 @@ namespace SwishApi.Models
         public string callbackUrl { get; set; }
         public string signature { get; private set; }
 
-        public void buildSignature(string certificatePath, string certificatePassword)
+        public void buildSignature()
         {
-            using (X509Store store = new X509Store(StoreName.CertificateAuthority, StoreLocation.CurrentUser))
+            X509Certificate2 cert = null;
+
+            X509Store store = new X509Store(StoreLocation.LocalMachine);
+            store.Open(OpenFlags.ReadOnly);
+            foreach (X509Certificate2 c in store.Certificates)
             {
-                store.Open(OpenFlags.ReadWrite);
-
-                var certs = new X509Certificate2Collection();
-                certs.Import(certificatePath, certificatePassword, X509KeyStorageFlags.DefaultKeySet);
-
-                RSACryptoServiceProvider csp = null;
-
-                foreach (X509Certificate2 cert in certs)
+                if (c.SerialNumber.ToLower().Equals(payload.signingCertificateSerialNumber))
                 {
-                    if (cert.HasPrivateKey)
-                    {
-                        csp = (RSACryptoServiceProvider)cert.PrivateKey;
-                        break;
-                    }
+                    cert = c;
                 }
+            }
+            store.Close();
 
-                if (csp != null)
-                {
-                    using (SHA512 sha = new SHA512Managed())
-                    {
-                        var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(payload));
-                        var hash = sha.ComputeHash(bytes);
-                        var sign = csp.SignHash(hash, CryptoConfig.MapNameToOID("SHA-512"));
-                        signature = Convert.ToBase64String(sign);
-                    }
-                }
-                else
-                {
-                    throw new Exception("Could not find private key");
-                }
+            if (cert == null)
+            {
+                throw new Exception("No signing certificate found!");
+            }
+            
+            // Sign
+            using (var rsa = cert.GetRSAPrivateKey()) // Get private key
+            using (var sha = new SHA512Managed()) // Get SHA512 instance
+            {
+                var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(payload)); // Get payload as bytes
+                var hash = sha.ComputeHash(bytes); // Hash
+                // Note that hashing is done twice. Once above and once in the SignData function. This is required!
+                var sign = rsa.SignData(hash, HashAlgorithmName.SHA512, RSASignaturePadding.Pkcs1);
+                signature = Convert.ToBase64String(sign); // Save signature
             }
         }
     }
