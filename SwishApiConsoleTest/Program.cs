@@ -6,8 +6,15 @@ namespace SwishApiConsoleTest
 {
     class Program
     {
-        // MainTestPaymentAndRefund
         static void Main(string[] args)
+        {
+            //MainTestPayment(args);
+            //MainTestQCommerce(args);
+            MainTestPayout(args);
+        }
+
+        // MainTestPaymentAndRefund
+        static void MainTestPayment(string[] args)
         {
             // Get the path for the test certificate in the TestCert folder in the console application folder, being always copy to the output folder
             string certificatePath = Environment.CurrentDirectory + "\\TestCert\\Swish_Merchant_TestCertificate_1234679304.p12";
@@ -16,7 +23,7 @@ namespace SwishApiConsoleTest
             SwishApi.Client client = new SwishApi.Client(certificatePath, "swish", "https://tabetaltmedswish.se/Test/Callback/");
 
             // Make the Payement Request
-            var response = client.MakePaymentRequest("46731596605", 1, "Test");
+            var response = client.MakePaymentRequest("1234679304", 1, "Test");//46731596605
 
             // Check if the payment request got success and not got any error
             if (string.IsNullOrEmpty(response.Error))
@@ -163,6 +170,31 @@ namespace SwishApiConsoleTest
             else
             {
                 Console.WriteLine("ERROR Get QR Code: " + getQRCodeResponse.Error);
+            }
+
+            Console.WriteLine(">>> Press enter to exit <<<");
+            Console.ReadLine();
+        }
+
+        static void MainTestPayout(string[] args)
+        {
+            // Get the path for the test certificate in the TestCert folder in the console application folder, being always copy to the output folder
+            string certificatePath = Environment.CurrentDirectory + "\\TestCert\\Swish_Merchant_TestCertificate_1234679304.p12";
+
+            // Create a Swishpi Client object with all data needed to run a test Swish payment
+            SwishApi.Client client = new SwishApi.Client(certificatePath, "swish", "https://tabetaltmedswish.se/Test/Callback/");
+            //client._enableHTTPLog = true;
+
+            var response = client.MakePayoutRequest(Guid.NewGuid().ToString("N").ToUpper(), "1234679304", "199001011234", "1.00", "Test", "7d70445ec8ef4d1e3a713427e973d097");
+
+            if (string.IsNullOrEmpty(response.Error))
+            {
+                Console.WriteLine("Location: " + response.Location);
+            }
+            else
+            {
+                // ERROR
+                Console.WriteLine("MakePaymentRequest - ERROR: " + response.Error);
             }
 
             Console.WriteLine(">>> Press enter to exit <<<");
