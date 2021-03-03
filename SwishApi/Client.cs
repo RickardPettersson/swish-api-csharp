@@ -34,9 +34,9 @@ namespace SwishApi
             _certDataBytes = System.IO.File.ReadAllBytes(certificatePath);
             _certificatePassword = certificatePassword;
             _baseAPIUrl = "https://mss.cpc.getswish.net"; // Test environment
-            _payeeAlias = "46735575979"; // 1234679304
+            _payeeAlias = "46735575979";
             _callbackUrl = callbackUrl;
-            _payeePaymentReference = "46735575979"; // 01234679304
+            _payeePaymentReference = "46735000000";
         }
 
 
