@@ -16,6 +16,10 @@ Efter en lång period som koden inte fungerat så har jag fått hjälp av en rad
 
 NuGet paketet uppdaterat med senaste koden.
 
+## Updatering 2021-03-04
+
+Pierre Schönbeck (ikinz på github) har skickat in en pull request på implementation av Payout apierna, stort tack för det Pierre!
+
 ## Testa
 
 I detta git repository ingår en test console application för testning, som är uppsatt att köras direkt mot Swish testmiljö med testcertifikat.
@@ -116,3 +120,5 @@ Efter jag la ner väldigt många timmar för att få Swish för handel att funge
 ## Programmerat av
 
 Jag som gjort detta projekt heter Rickard Nordström Pettersson och ni hittar mina kontaktuppgifter på http://www.rickardp.se
+
+Jag vill även tacka Pierre Schönbeck (ikinz på github) för sitt jobb att implementera Payout i detta library.
