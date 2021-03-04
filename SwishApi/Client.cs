@@ -19,6 +19,9 @@ namespace SwishApi
         public byte[] _certDataBytes;
         public string _callbackUrl;
         public string _payeePaymentReference;
+        public string _payerAlias;
+        public bool _enableHTTPLog;
+
 
         /// <summary>
         /// This constructor being used for test environment of Swish for Merchant
@@ -74,7 +77,83 @@ namespace SwishApi
 
             var baseAddress = new Uri(_baseAPIUrl);
 
-            client = new HttpClient(handler) { BaseAddress = baseAddress };
+            //client = new HttpClient(handler) { BaseAddress = baseAddress };
+            client = new HttpClient(new LoggingHandler(handler, _enableHTTPLog));
+        }
+
+        public PayoutRequestResponse MakePayoutRequest(string payoutUUID, string phonenumber, string payeeSSN, string amount, string message, string signingCertificateSerialNumber)
+        {
+            try
+            {
+                var requestEnvelope = new PayoutRequestEnvelope()
+                {
+                    payload = new PayoutRequestData()
+                    {
+                        payoutInstructionUUID = payoutUUID,
+                        payerPaymentReference = _payeePaymentReference,
+                        payerAlias = phonenumber,
+                        payeeAlias = _payeeAlias,
+                        payeeSSN = payeeSSN,
+                        amount = amount,
+                        currency = "SEK",
+                        payoutType = "PAYOUT",
+                        message = message,
+                        instructionDate = DateTime.Now.ToString("s"),
+                        signingCertificateSerialNumber = signingCertificateSerialNumber
+                    },
+                    callbackUrl = _callbackUrl
+                };
+                requestEnvelope.buildSignature();
+
+                HttpClientHandler handler;
+                HttpClient client;
+                PrepareHttpClientAndHandler(out handler, out client);
+
+                var httpRequestMessage = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri(_baseAPIUrl + "/swish-cpcapi/api/v1/payouts"),
+                    Content = new StringContent(JsonConvert.SerializeObject(requestEnvelope), Encoding.UTF8, "application/json")
+                };
+
+                var response = client.SendAsync(httpRequestMessage).Result;
+
+                string errorMessage = string.Empty;
+                string location = string.Empty;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var headers = response.Headers.ToList();
+
+                    if (headers.Any(x => x.Key == "Location"))
+                    {
+                        location = response.Headers.GetValues("Location").FirstOrDefault();
+                    }
+                }
+                else
+                {
+                    var readAsStringAsync = response.Content.ReadAsStringAsync();
+                    errorMessage = response.StatusCode + "|" + readAsStringAsync.Result;
+                    
+                }
+
+                client.Dispose();
+                handler.Dispose();
+
+                return new PayoutRequestResponse()
+                {
+                    Error = errorMessage,
+                    Location = location,
+                    JSON = JsonConvert.SerializeObject(requestEnvelope)
+                };
+            }
+            catch (Exception ex)
+            {
+                return new PayoutRequestResponse()
+                {
+                    Error = ex.ToString()
+                };
+            }
         }
 
         public PaymentRequestECommerceResponse MakePaymentRequest(string phonenumber, int amount, string message)
