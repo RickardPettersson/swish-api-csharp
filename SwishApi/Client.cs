@@ -58,6 +58,15 @@ namespace SwishApi
             payeeAlias
         ) {}
 
+        public Client(string callbackUrl, string baseUrl = "https://mss.cpc.getswish.net") : this
+        (
+            certificate: null,
+            baseUrl: baseUrl,
+            callbackUrl: callbackUrl,
+            payeePaymentReference: "01234679304",
+            payeeAlias: "1234679304" 
+        ) {}
+
         private Client(ClientCertificate certificate, string baseUrl, string callbackUrl, string payeePaymentReference, string payeeAlias)
         {
             _certificate = certificate;
@@ -69,24 +78,28 @@ namespace SwishApi
 
         private void PrepareHttpClientAndHandler(out HttpClientHandler handler, out HttpClient client)
         {
-            // Got help for this code on https://stackoverflow.com/questions/61677247/can-a-p12-file-with-ca-certificates-be-used-in-c-sharp-without-importing-them-t
             handler = new HttpClientHandler();
-            using (X509Store store = new X509Store(StoreName.CertificateAuthority, StoreLocation.CurrentUser))
+            
+            if (_certificate != null)
             {
-                store.Open(OpenFlags.ReadWrite);
-
-                var certs = new X509Certificate2Collection();
-                certs.Import(_certificate.Path, _certificate.Password, X509KeyStorageFlags.DefaultKeySet);
-
-                foreach (X509Certificate2 cert in certs)
+                // Got help for this code on https://stackoverflow.com/questions/61677247/can-a-p12-file-with-ca-certificates-be-used-in-c-sharp-without-importing-them-t
+                using (X509Store store = new X509Store(StoreName.CertificateAuthority, StoreLocation.CurrentUser))
                 {
-                    if (cert.HasPrivateKey)
+                    store.Open(OpenFlags.ReadWrite);
+
+                    var certs = new X509Certificate2Collection();
+                    certs.Import(_certificate.Path, _certificate.Password, X509KeyStorageFlags.DefaultKeySet);
+
+                    foreach (X509Certificate2 cert in certs)
                     {
-                        handler.ClientCertificates.Add(cert);
-                    }
-                    else
-                    {
-                        store.Add(cert);
+                        if (cert.HasPrivateKey)
+                        {
+                            handler.ClientCertificates.Add(cert);
+                        }
+                        else
+                        {
+                            store.Add(cert);
+                        }
                     }
                 }
             }
