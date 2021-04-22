@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
 
@@ -183,7 +183,7 @@ namespace SwishApiConsoleTest
 
             // Create a Swishpi Client object with all data needed to run a test Swish payment
             SwishApi.Client client = new SwishApi.Client(certificatePath, "swish", "https://tabetaltmedswish.se/Test/Callback/");
-            //client._enableHTTPLog = true;
+            // client.EnableHTTPLog = true;
 
             var response = client.MakePayoutRequest(Guid.NewGuid().ToString("N").ToUpper(), "1234679304", "199001019999", "1.00", "Test", "7d70445ec8ef4d1e3a713427e973d097");
 

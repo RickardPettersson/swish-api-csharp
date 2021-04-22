@@ -1,8 +1,6 @@
 ﻿using Newtonsoft.Json;
-using RestSharp;
 using SwishApi.Models;
 using System;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
@@ -12,42 +10,60 @@ namespace SwishApi
 {
     public class Client
     {
-        public string _certificatePath;
-        public string _certificatePassword;
-        public string _baseAPIUrl;
-        public string _payeeAlias;
-        public byte[] _certDataBytes;
-        public string _callbackUrl;
-        public string _payeePaymentReference;
-        public string _payerAlias;
-        public bool _enableHTTPLog;
+        readonly string _baseAPIUrl;
+        readonly string _payeeAlias;
+        readonly string _callbackUrl;
+        readonly string _payeePaymentReference;
+        readonly ClientCertificate _certificate;
 
+        class ClientCertificate
+        {
+            public string Path { get; set; }
+            
+            public byte[] Content { get; set; }
+
+            public string Password { get; set; }
+        }
+
+        public bool EnableHTTPLog { get; set; }
 
         /// <summary>
         /// This constructor being used for test environment of Swish for Merchant
         /// </summary>
         /// <param name="certificatePath"></param>
         /// <param name="certificatePassword"></param>
-        public Client(string certificatePath, string certificatePassword, string callbackUrl)
+        public Client(string certificatePath, string certificatePassword, string callbackUrl) : this(
+            new ClientCertificate()
+            {
+                Path = certificatePath,
+                Content = System.IO.File.ReadAllBytes(certificatePath),
+                Password = certificatePassword
+            },
+            "https://mss.cpc.getswish.net", // Test environment
+            callbackUrl,
+            "01234679304",
+            "1234679304"
+        ) {}
+
+        public Client(string certificatePath, string certificatePassword, string callbackUrl, string payeePaymentReference, string payeeAlias) : this(
+            new ClientCertificate()
+            {
+                Path = certificatePath,
+                Content = System.IO.File.ReadAllBytes(certificatePath),
+                Password = certificatePassword
+            },
+            "https://cpc.getswish.net", // Live environment
+            callbackUrl,
+            payeePaymentReference,
+            payeeAlias
+        ) {}
+
+        private Client(ClientCertificate certificate, string baseUrl, string callbackUrl, string payeePaymentReference, string payeeAlias)
         {
-            _certificatePath = certificatePath;
-            _certDataBytes = System.IO.File.ReadAllBytes(certificatePath);
-            _certificatePassword = certificatePassword;
-            _baseAPIUrl = "https://mss.cpc.getswish.net"; // Test environment
-            _payeeAlias = "1234679304";
+            _certificate = certificate;
+            _baseAPIUrl = baseUrl;
             _callbackUrl = callbackUrl;
-            _payeePaymentReference = "01234679304";
-        }
-
-
-        public Client(string certificatePath, string certificatePassword, string callbackUrl, string payeePaymentReference, string payeeAlias)
-        {
-            _certificatePath = certificatePath;
-            _certDataBytes = System.IO.File.ReadAllBytes(certificatePath);
-            _certificatePassword = certificatePassword;
-            _baseAPIUrl = "https://cpc.getswish.net"; // Live environment
             _payeeAlias = payeeAlias;
-            _callbackUrl = callbackUrl;
             _payeePaymentReference = payeePaymentReference;
         }
 
@@ -60,7 +76,7 @@ namespace SwishApi
                 store.Open(OpenFlags.ReadWrite);
 
                 var certs = new X509Certificate2Collection();
-                certs.Import(_certificatePath, _certificatePassword, X509KeyStorageFlags.DefaultKeySet);
+                certs.Import(_certificate.Path, _certificate.Password, X509KeyStorageFlags.DefaultKeySet);
 
                 foreach (X509Certificate2 cert in certs)
                 {
@@ -78,7 +94,7 @@ namespace SwishApi
             var baseAddress = new Uri(_baseAPIUrl);
 
             //client = new HttpClient(handler) { BaseAddress = baseAddress };
-            client = new HttpClient(new LoggingHandler(handler, _enableHTTPLog));
+            client = new HttpClient(new LoggingHandler(handler, EnableHTTPLog));
         }
 
         public PayoutRequestResponse MakePayoutRequest(string payoutUUID, string phonenumber, string payeeSSN, string amount, string message, string signingCertificateSerialNumber)
