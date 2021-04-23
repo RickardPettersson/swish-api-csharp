@@ -4,14 +4,38 @@ namespace SwishApiConsoleTest
 {
     class Program
     {
+        static SwishApi.Client CreateClient(bool useLocalCertificate = true)
+        {
+            var callbackUri = "https://tabetaltmedswish.se/Test/Callback/";
+
+            SwishApi.Client client;
+
+            if (useLocalCertificate)
+            {
+                // Get the path for the test certificate in the TestCert folder in the console application folder, being always copy to the output folder
+                string certificatePath = Environment.CurrentDirectory + "\\TestCert\\Swish_Merchant_TestCertificate_1234679304.p12";
+
+                // Create a Swishpi Client object with all data needed to run a test Swish payment
+                client = new SwishApi.Client(certificatePath, "swish", callbackUri);
+            }
+            else
+            {
+                // In an architecture where we have an upstream/proxy that manage certificates,
+                // we can construct a client that don't pass a local certificate in the request.
+                //
+                // In a context like that, the URI is also not the URI to the Swish server, but
+                // but rather the URI of the proxy.
+
+                client = new SwishApi.Client(callbackUri, "https://my_certificate_proxy.corp");
+            }
+
+            // client.EnableHTTPLog = true;
+            return client;
+        }
+
         static void Main(string[] args)
         {
-            // Get the path for the test certificate in the TestCert folder in the console application folder, being always copy to the output folder
-            string certificatePath = Environment.CurrentDirectory + "\\TestCert\\Swish_Merchant_TestCertificate_1234679304.p12";
-
-            // Create a Swishpi Client object with all data needed to run a test Swish payment
-            SwishApi.Client client = new SwishApi.Client(certificatePath, "swish", "https://tabetaltmedswish.se/Test/Callback/");
-            // client.EnableHTTPLog = true;
+            var client = CreateClient();
 
             MainTestPayment(client);
             MainTestQCommerce(client);
