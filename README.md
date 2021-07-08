@@ -6,6 +6,14 @@ Enkelt class library byggt i .NET Standard Library för att hantera API anrop f�
 
 API dokumentation direkt från Swish själva hittas på https://developer.getswish.se/merchants/ och är från den jag utgått.
 
+## Updatering 2021-07-08
+
+Godkände och mergeat in ändringar från en Pull Request att köra detta med .Net 5 + support för att inte ha certifikatet lokalt, dessa ändringar är gjorda av Per Samuellsson (https://github.com/per-samuelsson), stort tack!
+
+## Updatering 2021-03-04
+
+Godkände och mergeat in ändringar från en Pull Request för att köra Siwsh Payouts, ändringarna är gjorda av Pierre Schönbeck (https://github.com/ikinz), stort tack!
+
 ## Updatering 2020-05-20
 
 Jag har uppdateat GetSwish ABs test certifikat så koden fungerar i github repositoryt igen i test miljö.
@@ -121,4 +129,6 @@ Efter jag la ner väldigt många timmar för att få Swish för handel att funge
 
 Jag som gjort detta projekt heter Rickard Nordström Pettersson och ni hittar mina kontaktuppgifter på http://www.rickardp.se
 
-Jag vill även tacka Pierre Schönbeck (ikinz på github) för sitt jobb att implementera Payout i detta library.
+Jag vill även tacka dessa personer för att de bidragit till olika delar i detta projekt:
+* Pierre Schönbeck (https://github.com/ikinz)
+* Per Samuellsson (https://github.com/per-samuelsson)
