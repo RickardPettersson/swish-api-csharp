@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -13,9 +12,20 @@ namespace SwishApi.Models
         public string callbackUrl { get; set; }
         public string signature { get; private set; }
 
-        private X509Certificate2 FindSignatureCertificate(string serial)
+        private X509Certificate2 FindSignatureCertificate(string serial, string signingCertificatePath = null, string signingCertificatePassword = null)
         {
-            return FindSignatureCertificateInStore(serial, StoreLocation.CurrentUser) ?? FindSignatureCertificateInStore(serial, StoreLocation.LocalMachine);
+            return FindSignatureCertificateInStore(serial, StoreLocation.CurrentUser) ?? FindSignatureCertificateInStore(serial, StoreLocation.LocalMachine)
+                ?? GetCertificateFromPath(signingCertificatePath, signingCertificatePassword);
+        }
+
+        private X509Certificate2 GetCertificateFromPath(string signingCertificatePath = null, string signingCertificatePassword = null)
+        {
+            if (signingCertificatePath == null)
+            {
+                return null;
+            }
+
+            return new X509Certificate2(signingCertificatePath, signingCertificatePassword);
         }
 
         private X509Certificate2 FindSignatureCertificateInStore(string serial, StoreLocation location)
@@ -34,9 +44,9 @@ namespace SwishApi.Models
             return null;
         }
 
-        public void buildSignature()
+        public void buildSignature(string signingCertificatePath = null, string signingCertificatePassword = null)
         {
-            X509Certificate2 cert = FindSignatureCertificate(payload.signingCertificateSerialNumber);
+            X509Certificate2 cert = FindSignatureCertificate(payload.signingCertificateSerialNumber, signingCertificatePath, signingCertificatePassword);
             
             if (cert == null)
             {

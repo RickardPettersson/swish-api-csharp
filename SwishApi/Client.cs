@@ -11,7 +11,7 @@ namespace SwishApi
     public class Client
     {
         readonly string _baseAPIUrl;
-        readonly string _payeeAlias;
+        readonly string _merchantAlias;
         readonly string _callbackUrl;
         readonly string _payeePaymentReference;
         readonly ClientCertificate _certificate;
@@ -45,7 +45,7 @@ namespace SwishApi
             "1234679304"
         ) {}
 
-        public Client(string certificatePath, string certificatePassword, string callbackUrl, string payeePaymentReference, string payeeAlias) : this(
+        public Client(string certificatePath, string certificatePassword, string callbackUrl, string payeePaymentReference, string merchantAlias) : this(
             new ClientCertificate()
             {
                 Path = certificatePath,
@@ -55,7 +55,7 @@ namespace SwishApi
             "https://cpc.getswish.net", // Live environment
             callbackUrl,
             payeePaymentReference,
-            payeeAlias
+            merchantAlias
         ) {}
 
         public Client(string callbackUrl, string baseUrl = "https://mss.cpc.getswish.net") : this
@@ -64,15 +64,15 @@ namespace SwishApi
             baseUrl: baseUrl,
             callbackUrl: callbackUrl,
             payeePaymentReference: "01234679304",
-            payeeAlias: "1234679304" 
+            merchantAlias: "1234679304"
         ) {}
 
-        private Client(ClientCertificate certificate, string baseUrl, string callbackUrl, string payeePaymentReference, string payeeAlias)
+        private Client(ClientCertificate certificate, string baseUrl, string callbackUrl, string payeePaymentReference, string merchantAlias)
         {
             _certificate = certificate;
             _baseAPIUrl = baseUrl;
             _callbackUrl = callbackUrl;
-            _payeeAlias = payeeAlias;
+            _merchantAlias = merchantAlias;
             _payeePaymentReference = payeePaymentReference;
         }
 
@@ -110,7 +110,7 @@ namespace SwishApi
             client = new HttpClient(new LoggingHandler(handler, EnableHTTPLog));
         }
 
-        public PayoutRequestResponse MakePayoutRequest(string payoutUUID, string phonenumber, string payeeSSN, string amount, string message, string signingCertificateSerialNumber)
+        public PayoutRequestResponse MakePayoutRequest(string payoutUUID, string phonenumber, string payeeSSN, string amount, string message, string signingCertificateSerialNumber, string signingCertificatePath = null, string signingCertificatePassword = null)
         {
             try
             {
@@ -120,8 +120,8 @@ namespace SwishApi
                     {
                         payoutInstructionUUID = payoutUUID,
                         payerPaymentReference = _payeePaymentReference,
-                        payerAlias = phonenumber,
-                        payeeAlias = _payeeAlias,
+                        payerAlias = _merchantAlias,
+                        payeeAlias = phonenumber,
                         payeeSSN = payeeSSN,
                         amount = amount,
                         currency = "SEK",
@@ -132,7 +132,7 @@ namespace SwishApi
                     },
                     callbackUrl = _callbackUrl
                 };
-                requestEnvelope.buildSignature();
+                requestEnvelope.buildSignature(signingCertificatePath, signingCertificatePassword);
 
                 HttpClientHandler handler;
                 HttpClient client;
@@ -194,7 +194,7 @@ namespace SwishApi
                     payeePaymentReference = _payeePaymentReference,
                     callbackUrl = _callbackUrl,
                     payerAlias = phonenumber,
-                    payeeAlias = _payeeAlias,
+                    payeeAlias = _merchantAlias,
                     amount = amount.ToString(),
                     currency = "SEK",
                     message = message
@@ -258,7 +258,7 @@ namespace SwishApi
                 {
                     payeePaymentReference = _payeePaymentReference,
                     callbackUrl = _callbackUrl,
-                    payeeAlias = _payeeAlias,
+                    payeeAlias = _merchantAlias,
                     amount = amount.ToString(),
                     currency = "SEK",
                     message = message
@@ -366,7 +366,8 @@ namespace SwishApi
                         errorCode = "Error",
                         errorMessage = errorMessage
                     };
-                } else
+                }
+                else
                 {
                     return r;
                 }
@@ -374,6 +375,66 @@ namespace SwishApi
             catch (Exception ex)
             {
                 return new CheckPaymentRequestStatusResponse()
+                {
+                    errorCode = "Exception",
+                    errorMessage = ex.ToString()
+                };
+            }
+        }
+
+        public CheckPayoutRequestStatusResponse CheckPayoutStatus(string url)
+        {
+            try
+            {
+                HttpClientHandler handler;
+                HttpClient client;
+                PrepareHttpClientAndHandler(out handler, out client);
+                client.BaseAddress = new Uri(url);
+
+
+                var httpRequestMessage = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Get
+                };
+
+                var response = client.SendAsync(httpRequestMessage).Result;
+
+                string errorMessage = string.Empty;
+                string PaymentRequestToken = string.Empty;
+                CheckPayoutRequestStatusResponse r = null;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var readAsStringAsync = response.Content.ReadAsStringAsync();
+                    string jsonResponse = readAsStringAsync.Result;
+
+                    r = JsonConvert.DeserializeObject<CheckPayoutRequestStatusResponse>(jsonResponse);
+                }
+                else
+                {
+                    var readAsStringAsync = response.Content.ReadAsStringAsync();
+                    errorMessage = readAsStringAsync.Result;
+                }
+
+                client.Dispose();
+                handler.Dispose();
+
+                if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    return new CheckPayoutRequestStatusResponse()
+                    {
+                        errorCode = "Error",
+                        errorMessage = errorMessage
+                    };
+                }
+                else
+                {
+                    return r;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new CheckPayoutRequestStatusResponse()
                 {
                     errorCode = "Exception",
                     errorMessage = ex.ToString()
@@ -389,7 +450,7 @@ namespace SwishApi
                 {
                     originalPaymentReference = originalPaymentReference,
                     callbackUrl = refundCallbackUrl,
-                    payerAlias = _payeeAlias,
+                    payerAlias = _merchantAlias,
                     amount = amount.ToString(),
                     currency = "SEK",
                     message = message
