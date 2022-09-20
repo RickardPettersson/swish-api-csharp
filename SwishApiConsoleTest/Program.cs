@@ -37,8 +37,8 @@ namespace SwishApiConsoleTest
         {
             var client = CreateClient();
 
-            // MainTestPayment(client);
-            // MainTestQCommerce(client);
+            MainTestPayment(client);
+            MainTestQCommerce(client);
             MainTestPayout(client);
         }
 
