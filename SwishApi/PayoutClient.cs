@@ -167,7 +167,7 @@ namespace SwishApi
         /// </summary>
         /// <param name="url">The URL we got from the payment request Location header</param>
         /// <returns></returns>
-        public CheckPaymentRequestStatusResponse CheckPayoutStatus(string url)
+        public CheckPayoutRequestStatusResponse CheckPayoutStatus(string url)
         {
             try
             {
@@ -186,14 +186,14 @@ namespace SwishApi
 
                 string errorMessage = string.Empty;
                 string PaymentRequestToken = string.Empty;
-                CheckPaymentRequestStatusResponse r = null;
+                CheckPayoutRequestStatusResponse r = null;
 
                 if (response.IsSuccessStatusCode)
                 {
                     var readAsStringAsync = response.Content.ReadAsStringAsync();
                     string jsonResponse = readAsStringAsync.Result;
 
-                    r = JsonConvert.DeserializeObject<CheckPaymentRequestStatusResponse>(jsonResponse);
+                    r = JsonConvert.DeserializeObject<CheckPayoutRequestStatusResponse>(jsonResponse);
                 }
                 else
                 {
@@ -206,7 +206,7 @@ namespace SwishApi
 
                 if (!string.IsNullOrEmpty(errorMessage))
                 {
-                    return new CheckPaymentRequestStatusResponse()
+                    return new CheckPayoutRequestStatusResponse()
                     {
                         errorCode = "Error",
                         errorMessage = errorMessage
@@ -219,7 +219,7 @@ namespace SwishApi
             }
             catch (Exception ex)
             {
-                return new CheckPaymentRequestStatusResponse()
+                return new CheckPayoutRequestStatusResponse()
                 {
                     errorCode = "Exception",
                     errorMessage = ex.ToString()
