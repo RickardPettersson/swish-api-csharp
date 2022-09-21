@@ -167,7 +167,7 @@ namespace SwishApi
         /// </summary>
         /// <param name="url">The URL we got from the payment request Location header</param>
         /// <returns></returns>
-        public CheckPaymentRequestStatusResponse CheckPaymentStatus(string url)
+        public CheckPaymentRequestStatusResponse CheckPayoutStatus(string url)
         {
             try
             {
