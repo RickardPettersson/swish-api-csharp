@@ -195,16 +195,39 @@ namespace SwishApiConsoleTest
 
         static void MainTestPayout(SwishApi.Client client)
         {
-            var response = client.MakePayoutRequest(Guid.NewGuid().ToString("N").ToUpper(), "1234679304", "199001019999", "1.00", "Test", "7d70445ec8ef4d1e3a713427e973d097");
+            string certificatePath = Environment.CurrentDirectory + "\\TestCert\\Swish_Merchant_TestSigningCertificate_1234679304.p12";
+
+            // Test payeeAlias and payeeSSN from MSS_UserGuide_v1.9.pdf
+            var response = client.MakePayoutRequest(Guid.NewGuid().ToString("N").ToUpper(), "46722334455", "197501088327", "1.00", "Test", "7d70445ec8ef4d1e3a713427e973d097", certificatePath, "swish");
 
             if (string.IsNullOrEmpty(response.Error))
             {
                 Console.WriteLine("Location: " + response.Location);
+
+                // If you do a webbapplication you here should wait some time, showing a "loading" view or something and try to do the payment status check as below, you maybe have some ajax request doing a call to a actionresult doing this code
+                // Wait so that the payment request has been processed
+                System.Threading.Thread.Sleep(5000);
+
+                // Make the payment status check
+                var statusResponse = client.CheckPayoutStatus(response.Location);
+
+                // Check if the call is done correct
+                if (string.IsNullOrEmpty(statusResponse.errorCode))
+                {
+                    // Call was maked without any problem
+                    Console.WriteLine("Status: " + statusResponse.status);
+
+                }
+                else
+                {
+                    // ERROR
+                    Console.WriteLine("CheckPayoutResponse: " + statusResponse.errorCode + " - " + statusResponse.errorMessage);
+                }
             }
             else
             {
                 // ERROR
-                Console.WriteLine("MakePaymentRequest - ERROR: " + response.Error);
+                Console.WriteLine("MakePayoutRequest - ERROR: " + response.Error);
             }
 
             Console.WriteLine(">>> Press enter to exit <<<");
