@@ -132,7 +132,7 @@ namespace SwishApi
                     },
                     callbackUrl = _callbackUrl
                 };
-                requestEnvelope.buildSignature(signingCertificatePath, signingCertificatePassword);
+                requestEnvelope.buildSignature(new Models.ClientCertificate() { Path = signingCertificatePath, Password = signingCertificatePassword });
 
                 HttpClientHandler handler;
                 HttpClient client;

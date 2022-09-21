@@ -7,6 +7,7 @@ namespace SwishApi.Models
     public class RefundData
     {
         public string originalPaymentReference { get; set; }
+        public string payerPaymentReference { get; set; }
         public string callbackUrl { get; set; }
         public string payerAlias { get; set; }
         public string amount { get; set; }
