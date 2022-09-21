@@ -13,7 +13,7 @@ namespace SwishApi
     public class ECommerceClient
     {
         readonly string _environment;
-        readonly string _payeeAlias;
+        readonly string _merchantAlias;
         readonly string _callbackUrl;
         readonly string _payeePaymentReference;
         readonly ClientCertificate _certificate;
@@ -27,12 +27,12 @@ namespace SwishApi
         /// <param name="payeeAlias">The Swish number of the payee. It needs to match with Merchant Swish number.</param>
         /// <param name="enableHTTPLog">Set to true to log HTTP Requests to the Swish Payment API</param>
         /// <param name="environment">Set what environment of Swish Payment API should be used, PROD, SANDBOX or EMULATOR</param>
-        public ECommerceClient(string callbackUrl, string payeePaymentReference, string payeeAlias, bool enableHTTPLog = false, string environment = "PROD")
+        public ECommerceClient(string callbackUrl, string payeePaymentReference, string merchantAlias, bool enableHTTPLog = false, string environment = "PROD")
         {
             _environment = environment;
             _certificate = null;
             _callbackUrl = callbackUrl;
-            _payeeAlias = payeeAlias;
+            _merchantAlias = merchantAlias;
             _payeePaymentReference = payeePaymentReference;
             _enableHTTPLog = enableHTTPLog;
         }
@@ -47,7 +47,7 @@ namespace SwishApi
         /// <param name="payeeAlias">The Swish number of the payee. It needs to match with Merchant Swish number.</param>
         /// <param name="enableHTTPLog">Set to true to log HTTP Requests to the Swish Payment API</param>
         /// <param name="environment">Set what environment of Swish Payment API should be used, PROD, SANDBOX or EMULATOR</param>
-        public ECommerceClient(string certificatePath, string certificatePassword, string callbackUrl, string payeePaymentReference, string payeeAlias, bool enableHTTPLog = false, string environment = "PROD")
+        public ECommerceClient(string certificatePath, string certificatePassword, string callbackUrl, string payeePaymentReference, string merchantAlias, bool enableHTTPLog = false, string environment = "PROD")
         {
             _certificate = new ClientCertificate()
             {
@@ -56,7 +56,7 @@ namespace SwishApi
             };
             _environment = environment;
             _callbackUrl = callbackUrl;
-            _payeeAlias = payeeAlias;
+            _merchantAlias = merchantAlias;
             _payeePaymentReference = payeePaymentReference;
             _enableHTTPLog = enableHTTPLog;
         }
@@ -79,7 +79,7 @@ namespace SwishApi
                     payeePaymentReference = _payeePaymentReference,
                     callbackUrl = _callbackUrl,
                     payerAlias = payerAlias,
-                    payeeAlias = _payeeAlias,
+                    payeeAlias = _merchantAlias,
                     amount = amount.ToString(),
                     currency = "SEK",
                     message = message

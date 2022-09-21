@@ -14,7 +14,7 @@ namespace SwishApi
     public class MCommerceClient
     {
         readonly string _environment;
-        readonly string _payeeAlias;
+        readonly string _merchantAlias;
         readonly string _callbackUrl;
         readonly string _payeePaymentReference;
         readonly ClientCertificate _certificate;
@@ -25,15 +25,15 @@ namespace SwishApi
         /// </summary>
         /// <param name="callbackUrl">URL where you like to get the Swish Payment Callback</param>
         /// <param name="payeePaymentReference">Payment reference supplied by theMerchant. This is not used by Swish but is included in responses back to the client. This reference could for example be an order id or similar. If set the value must not exceed 35 characters and only the following characters are allowed: [a-ö, A-Ö, 0-9, -]</param>
-        /// <param name="payeeAlias">The Swish number of the payee. It needs to match with Merchant Swish number.</param>
+        /// <param name="merchantAlias">The Swish number of the payee. It needs to match with Merchant Swish number.</param>
         /// <param name="enableHTTPLog">Set to true to log HTTP Requests to the Swish Payment API</param>
         /// <param name="environment">Set what environment of Swish Payment API should be used, PROD, SANDBOX or EMULATOR</param>
-        public MCommerceClient(string callbackUrl, string payeePaymentReference, string payeeAlias, bool enableHTTPLog = false, string environment = "PROD")
+        public MCommerceClient(string callbackUrl, string payeePaymentReference, string merchantAlias, bool enableHTTPLog = false, string environment = "PROD")
         {
             _certificate = null;
             _environment = environment;
             _callbackUrl = callbackUrl;
-            _payeeAlias = payeeAlias;
+            _merchantAlias = merchantAlias;
             _payeePaymentReference = payeePaymentReference;
             _enableHTTPLog = enableHTTPLog;
         }
@@ -57,7 +57,7 @@ namespace SwishApi
             };
             _environment = environment;
             _callbackUrl = callbackUrl;
-            _payeeAlias = payeeAlias;
+            _merchantAlias = payeeAlias;
             _payeePaymentReference = payeePaymentReference;
             _enableHTTPLog = enableHTTPLog;
         }
@@ -78,7 +78,7 @@ namespace SwishApi
                 {
                     payeePaymentReference = _payeePaymentReference,
                     callbackUrl = _callbackUrl,
-                    payeeAlias = _payeeAlias,
+                    payeeAlias = _merchantAlias,
                     amount = amount.ToString(),
                     currency = "SEK",
                     message = message

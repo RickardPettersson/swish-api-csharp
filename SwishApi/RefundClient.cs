@@ -13,7 +13,6 @@ namespace SwishApi
     public class RefundClient
     {
         readonly string _environment;
-        readonly string _payeeAlias;
         readonly string _callbackUrl;
         readonly string _payeePaymentReference;
         readonly ClientCertificate _certificate;
