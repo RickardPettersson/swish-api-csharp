@@ -12,7 +12,7 @@ namespace SwishApiConsoleTest
         {
             string json = jsonElement.ToString();
 
-            SwishPaymentCallback callback = Newtonsoft.Json.JsonConvert.DeserializeObject<SwishPaymentCallback>(json);
+            PaymentCallback callback = Newtonsoft.Json.JsonConvert.DeserializeObject<PaymentCallback>(json);
 
             // Check if the call is done correct
             if (string.IsNullOrEmpty(callback.errorCode))
@@ -228,7 +228,7 @@ namespace SwishApiConsoleTest
             string instructionUUID = Guid.NewGuid().ToString("N").ToUpper();
 
             // Test payeeAlias and payeeSSN from MSS_UserGuide_v1.9.pdf
-            var response = payoutClient.MakePayoutRequest("46722334455", "197501088327", 1, "Test", instructionUUID, "7d70445ec8ef4d1e3a713427e973d097", new SwishApi.Models.ClientCertificate() { Path = certificatePath, Password = "swish" });
+            var response = payoutClient.MakePayoutRequest("46722334455", "197501088327", 1, "Test", instructionUUID, "7d70445ec8ef4d1e3a713427e973d097", new SwishApi.Models.ClientCertificate() { CertificateFilePath = certificatePath, Password = "swish" });
 
             if (string.IsNullOrEmpty(response.Error))
             {
