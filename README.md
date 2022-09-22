@@ -2,9 +2,26 @@
 
 ---
 
-Enkelt class library byggt i .NET Standard Library för att hantera API anrop för Swish för Handel.
+Enkelt class library byggt i .NET 6 för att hantera API anrop för Swish för Handel.
 
 API dokumentation direkt från Swish själva hittas på https://developer.getswish.se/merchants/ och är från den jag utgått.
+
+## Updatering 2022-09-22
+Uppdaterat projektet att köra .Net 6.
+
+Jag har byggt nya C# klasser för varje typ av Swish function för att göra koden renare och uppdaterat med ett par önskemål som funnits.
+
+Här är namnen på klient klasserna: ECommerceClient, MCommerceClient, RefundClient och RefundClient och om ni är insatta i Swish För Handel så tror jag ni känner igen namnen och förstår vad varje är till för.
+
+Det har byggts in funktion att kunna skicka in en Stream av klient certifikatet istället för en sökväg till filen. 
+
+Jag har även lagt in så vid varje anrop läggs en host header in för att undvika ett problem med SendAsync kommandot för HttpClient.
+
+SwishApiConsoleTest projektet är uppdaterat och kör med dem nya klient class koden.
+
+Den gamla Client.cs koden är fortfarande kvar så det är just nu bakåt kompatibelt men jag har satt ett Obsolete attribute på C# classen och jag vill att ni går över till dem nya klient classerna, den gamla kommer tas bort framöver.
+
+Sista grejen jag gjort är att jag inkluderat en model som heter PaymentCallback och tror namnet säger sig själv och då uppdaterat Callback kod exemplet nedan att använda denna class.
 
 ## Updatering 2021-07-08
 
@@ -51,67 +68,47 @@ I repositoryt finns en Console Application som visar kod exempel hur man använd
 
 ### Callbacks kodexempel
 
-Här finns kod för ett ASP.NET MVC 5 projekt och Callback kod för både payment och refund, tagna från GitHub repositoryt: https://github.com/RickardPettersson/swish-for-handel-csharp
+Här finns kod exempel för hur Swish Payment Callback kan se ut i ett .Net 6 Web API projekt:
 
 ```C#
-public string Callback()
+[HttpPost("/p/Swish/Callback")]
+public string SwishCallback([FromBody] JsonElement jsonElement)
 {
-    Stream req = Request.InputStream;
-    req.Seek(0, System.IO.SeekOrigin.Begin);
-    string json = new StreamReader(req).ReadToEnd();
+	string json = jsonElement.ToString();
 
-    SwishCheckPaymentRequestStatusResponse resultObject = JsonConvert.DeserializeObject<SwishCheckPaymentRequestStatusResponse>(json);
+	PaymentCallback callback = Newtonsoft.Json.JsonConvert.DeserializeObject<PaymentCallback>(json);
 
-    switch (resultObject.status)
-    {
-        case "CREATED":
-            // Borde kanske aldrig få CREATED här...
-            break;
-        case "PAID":
-            // Betalningen är klar
-            break;
-        case "DECLINED":
-            // Användaren avbröt betalningen
-            break;
-        case "ERROR":
-            // Något gick fel, om betalningen inte sker inom 3 minuter skickas ERROR
-            break;
-    }
+	// Check if the call is done correct
+	if (string.IsNullOrEmpty(callback.errorCode))
+	{
+		switch (callback.status)
+		{
+			case "CREATED":
+				// Maybe never happening but the payment created
+				break;
+			case "PAID":
+				// Payment is done
+				break;
+			case "DECLINED":
+				// The user cancelled the payment
+				break;
+			case "ERROR":
+				// Something got wrong, if it takes 3 minutes its timeouts to ERROR
+				break;
+		}
+	}
+	else
+	{
+		// ERROR
+	}
 
-    // When someone like to use this live I should log this and maybe change the status of some order or somethign to be paid or what the status says.
-    // To make a refund you need to save the value of paymentReference
-    // var paymentReference = resultObject.paymentReference;
+	if (!string.IsNullOrEmpty(callback.payeePaymentReference))
+	{
+		string myReference = callback.payeePaymentReference;
 
-    return "OK";
-}
+	}
 
-public string RefundCallback()
-{
-    // Exempel Callback JSON sträng
-    Stream req = Request.InputStream;
-    req.Seek(0, System.IO.SeekOrigin.Begin);
-    string json = new StreamReader(req).ReadToEnd();
-
-    SwishRefundSatusCheckResponse resultObject = JsonConvert.DeserializeObject<SwishRefundSatusCheckResponse>(json);
-
-    switch (resultObject.status)
-    {
-        case "DEBITED":
-            // Återköpt
-            break;
-        case "PAID":
-            // Betald
-            break;
-        case "ERROR":
-            // Något gick fel
-            break;
-    }
-
-    // When someone like to use this live I should log this and maybe change the status of some order or something to be repaid or what the status says.
-    // Use payerPaymentReference to get the order
-    // var paymentref = resultObject.payerPaymentReference;
-
-    return "OK";
+	return "OK";
 }
 ```
 
@@ -129,6 +126,4 @@ Efter jag la ner väldigt många timmar för att få Swish för handel att funge
 
 Jag som gjort detta projekt heter Rickard Nordström Pettersson och ni hittar mina kontaktuppgifter på http://www.rickardp.se
 
-Jag vill även tacka dessa personer för att de bidragit till olika delar i detta projekt:
-* Pierre Schönbeck (https://github.com/ikinz)
-* Per Samuellsson (https://github.com/per-samuelsson)
+Jag vill även tacka de personer som inkommit med pull requests och idéer på förbättringar, dem syns under Contributors på höger spalten.
