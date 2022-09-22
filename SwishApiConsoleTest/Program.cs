@@ -10,8 +10,8 @@ namespace SwishApiConsoleTest
              * Uncomment what function you like to test
              */
             //MainTestPayment();
-            MainTestQCommerce();
-            //MainTestPayout();
+            //MainTestQCommerce();
+            MainTestPayout();
         }
 
         // MainTestPaymentAndRefund
