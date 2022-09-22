@@ -179,7 +179,7 @@ namespace SwishApi
                     Method = HttpMethod.Get
                 };
 
-                httpRequestMessage.Headers.Add("host", httpRequestMessage.RequestUri.Host);
+                httpRequestMessage.Headers.Add("host", client.BaseAddress.Host);
 
                 var response = client.SendAsync(httpRequestMessage).Result;
 
