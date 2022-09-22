@@ -13,6 +13,7 @@ namespace SwishApi
     public class RefundClient
     {
         readonly string _environment;
+        readonly string _merchantAlias;
         readonly string _callbackUrl;
         readonly string _payeePaymentReference;
         readonly ClientCertificate _certificate;
@@ -25,9 +26,10 @@ namespace SwishApi
         /// <param name="certificatePassword">The password to use the certificate</param>
         /// <param name="callbackUrl">URL where you like to get the Swish Payment Callback</param>
         /// <param name="payeePaymentReference">Payment reference supplied by theMerchant. This is not used by Swish but is included in responses back to the client. This reference could for example be an order id or similar. If set the value must not exceed 35 characters and only the following characters are allowed: [a-ö, A-Ö, 0-9, -]</param>
+        /// <param name="merchantAlias">The Swish number of the payee. It needs to match with Merchant Swish number.</param>
         /// <param name="enableHTTPLog">Set to true to log HTTP Requests to the Swish Payment API</param>
         /// <param name="environment">Set what environment of Swish Payment API should be used, PROD, SANDBOX or EMULATOR</param>
-        public RefundClient(string certificatePath, string certificatePassword, string callbackUrl, string payeePaymentReference, bool enableHTTPLog = false, string environment = "PROD")
+        public RefundClient(string certificatePath, string certificatePassword, string callbackUrl, string payeePaymentReference, string merchantAlias, bool enableHTTPLog = false, string environment = "PROD")
         {
             _certificate = new ClientCertificate()
             {
@@ -36,6 +38,7 @@ namespace SwishApi
             };
             _environment = environment;
             _callbackUrl = callbackUrl;
+            _merchantAlias = merchantAlias;
             _payeePaymentReference = payeePaymentReference;
             _enableHTTPLog = enableHTTPLog;
         }
@@ -46,14 +49,15 @@ namespace SwishApi
         /// <param name="clientCertificate">Client Certificate object</param>
         /// <param name="callbackUrl">URL where you like to get the Swish Payment Callback</param>
         /// <param name="payeePaymentReference">Payment reference supplied by theMerchant. This is not used by Swish but is included in responses back to the client. This reference could for example be an order id or similar. If set the value must not exceed 35 characters and only the following characters are allowed: [a-ö, A-Ö, 0-9, -]</param>
-        /// <param name="payeeAlias">The Swish number of the payee. It needs to match with Merchant Swish number.</param>
+        /// <param name="merchantAlias">The Swish number of the payee. It needs to match with Merchant Swish number.</param>
         /// <param name="enableHTTPLog">Set to true to log HTTP Requests to the Swish Payment API</param>
         /// <param name="environment">Set what environment of Swish Payment API should be used, PROD, SANDBOX or EMULATOR</param>
-        public RefundClient(ClientCertificate clientCertificate, string callbackUrl, string payeePaymentReference, bool enableHTTPLog = false, string environment = "PROD")
+        public RefundClient(ClientCertificate clientCertificate, string callbackUrl, string payeePaymentReference, string merchantAlias, bool enableHTTPLog = false, string environment = "PROD")
         {
             _certificate = clientCertificate;
             _environment = environment;
             _callbackUrl = callbackUrl;
+            _merchantAlias = merchantAlias;
             _payeePaymentReference = payeePaymentReference;
             _enableHTTPLog = enableHTTPLog;
         }
@@ -62,12 +66,12 @@ namespace SwishApi
         /// Initiate a Swish Refund Request
         /// </summary>
         /// <param name="originalPaymentReference">Reference of the original payment that this refund is for.</param>
-        /// <param name="payerAlias">The Swish number of the merchant that makes the refund payment.</param>
+        /// <param name="mobileNumberToRefundTo">The Cell phone number of the person that receives the refund payment.</param>
         /// <param name="amount">The amount of money to pay. The amount cannot be less than 0.01 SEK and not more than 999999999999.99 SEK. Valid value has to be all digits or with 2 digit decimal separated with a period.</param>
         /// <param name="message">Merchant supplied message about the payment/order. Max 50 characters. Common allowed characters are the letters a-ö, A-Ö, the numbers 0-9, and special characters !?=#$%&()*+,-./:;<'"@. In addition, the following special characters are also allowed: ^¡¢£€¥¿Š§šŽžŒœŸÀÁÂÃÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕØØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ.</param>
         /// <param name="instructionUUID">An identifier created by the merchant to uniquely identify a payout instruction sent to the Swish system. Swish uses this identifier to guarantee the uniqueness of a payout instruction and prevent occurrence of unintended double payments. 32 hexadecimal (16- based) digits. Use Guid.NewGuid().ToString("N").ToUpper()</param>
         /// <returns></returns>
-        public RefundResponse MakeRefundRequest(string originalPaymentReference, string payerAlias, int amount, string message, string instructionUUID)
+        public RefundResponse MakeRefundRequest(string originalPaymentReference, string mobileNumberToRefundTo, int amount, string message, string instructionUUID)
         {
             try
             {
@@ -76,7 +80,8 @@ namespace SwishApi
                     originalPaymentReference = originalPaymentReference,
                     payerPaymentReference = _payeePaymentReference,
                     callbackUrl = _callbackUrl,
-                    payerAlias = payerAlias,
+                    payerAlias = _merchantAlias,
+                    payeeAlias = mobileNumberToRefundTo,
                     amount = amount.ToString(),
                     currency = "SEK",
                     message = message
@@ -169,7 +174,7 @@ namespace SwishApi
                     Method = HttpMethod.Get
                 };
 
-                httpRequestMessage.Headers.Add("host", httpRequestMessage.RequestUri.Host);
+                httpRequestMessage.Headers.Add("host", client.BaseAddress.Host);
 
                 var response = client.SendAsync(httpRequestMessage).Result;
 

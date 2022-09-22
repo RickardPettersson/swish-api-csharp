@@ -26,7 +26,7 @@ namespace SwishApi
         /// <param name="certificatePassword">The password to use the certificate</param>
         /// <param name="callbackUrl">URL where you like to get the Swish Payment Callback</param>
         /// <param name="payeePaymentReference">Payment reference supplied by theMerchant. This is not used by Swish but is included in responses back to the client. This reference could for example be an order id or similar. If set the value must not exceed 35 characters and only the following characters are allowed: [a-ö, A-Ö, 0-9, -]</param>
-        /// <param name="payeeAlias">The Swish number of the payee. It needs to match with Merchant Swish number.</param>
+        /// <param name="merchantAlias">The Swish number of the payee. It needs to match with Merchant Swish number.</param>
         /// <param name="enableHTTPLog">Set to true to log HTTP Requests to the Swish Payment API</param>
         /// <param name="environment">Set what environment of Swish Payment API should be used, PROD, SANDBOX or EMULATOR</param>
         public ECommerceClient(string certificatePath, string certificatePassword, string callbackUrl, string payeePaymentReference, string merchantAlias, bool enableHTTPLog = false, string environment = "PROD")
@@ -172,7 +172,7 @@ namespace SwishApi
                     Method = HttpMethod.Get
                 };
 
-                httpRequestMessage.Headers.Add("host", httpRequestMessage.RequestUri.Host);
+                httpRequestMessage.Headers.Add("host", client.BaseAddress.Host);
 
                 var response = client.SendAsync(httpRequestMessage).Result;
 

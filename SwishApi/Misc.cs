@@ -14,6 +14,7 @@ namespace SwishApi
             using (MemoryStream ms = new MemoryStream())
             {
                 input.CopyTo(ms);
+                input.Seek(0, SeekOrigin.Begin);
                 return ms.ToArray();
             }
         }

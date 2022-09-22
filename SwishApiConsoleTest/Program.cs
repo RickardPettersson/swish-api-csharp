@@ -4,60 +4,26 @@ namespace SwishApiConsoleTest
 {
     class Program
     {
-        /*
-         * Example code for the callback call from the swish server
-         * 
-        [HttpPost("/p/Swish/Callback")]
-        public string SwishCallback([FromBody] JsonElement jsonElement)
-        {
-            string json = jsonElement.ToString();
-
-            PaymentCallback callback = Newtonsoft.Json.JsonConvert.DeserializeObject<PaymentCallback>(json);
-
-            // Check if the call is done correct
-            if (string.IsNullOrEmpty(callback.errorCode))
-            {
-                switch (callback.status)
-                {
-                    case "CREATED":
-                        // Maybe never happening but the payment created
-                        break;
-                    case "PAID":
-                        // Payment is done
-                        break;
-                    case "DECLINED":
-                        // The user cancelled the payment
-                        break;
-                    case "ERROR":
-                        // Something got wrong, if it takes 3 minutes its timeouts to ERROR
-                        break;
-                }
-            }
-            else
-            {
-                // ERROR
-            }
-
-            if (!string.IsNullOrEmpty(callback.payeePaymentReference))
-            {
-                string myReference = callback.payeePaymentReference;
-
-            }
-
-            return "OK";
-        }*/
-
         static void Main(string[] args)
         {
+            /*
+             * Uncomment what function you like to test
+             */
             MainTestPayment();
-            MainTestQCommerce();
-            MainTestPayout();
+            //MainTestQCommerce();
+            //MainTestPayout();
         }
 
         // MainTestPaymentAndRefund
         static void MainTestPayment()
         {
-            var eCommerceClient = new SwishApi.ECommerceClient("https://tabetaltmedswish.se/Test/Callback/", "12345", "1234679304", true, SwishApi.Environment.Emulator);
+            var clientCertificate = new SwishApi.Models.ClientCertificate()
+            {
+                CertificateAsStream = System.IO.File.OpenRead("TestCert//Swish_Merchant_TestCertificate_1234679304.p12"),
+                Password = "swish"
+            };
+
+            var eCommerceClient = new SwishApi.ECommerceClient(clientCertificate, "https://eofvqci6optquip.m.pipedream.net", "12345", "1234679304", true, SwishApi.Environment.Emulator);
 
             string instructionUUID = Guid.NewGuid().ToString("N").ToUpper();
 
@@ -85,7 +51,7 @@ namespace SwishApiConsoleTest
 
                     if (statusResponse.status == "PAID")
                     {
-                        var refundClient = new SwishApi.RefundClient("https://tabetaltmedswish.se/Test/RefundCallback/", "1234", true, SwishApi.Environment.Emulator);
+                        var refundClient = new SwishApi.RefundClient(clientCertificate, "https://eofvqci6optquip.m.pipedream.net", "1234", "1234679304", true, SwishApi.Environment.Emulator);
                         
                         string instructionUUID2 = Guid.NewGuid().ToString("N").ToUpper();
 
@@ -141,7 +107,13 @@ namespace SwishApiConsoleTest
         // MainTestQCommerce
         static void MainTestQCommerce()
         {
-            var mCommerceClient = new SwishApi.MCommerceClient("https://tabetaltmedswish.se/Test/Callback/", "12345", "1234679304", true, SwishApi.Environment.Emulator);
+            var clientCertificate = new SwishApi.Models.ClientCertificate()
+            {
+                CertificateFilePath = "TestCert//Swish_Merchant_TestCertificate_1234679304.p12",
+                Password = "swish"
+            };
+
+            var mCommerceClient = new SwishApi.MCommerceClient(clientCertificate, "https://eofvqci6optquip.m.pipedream.net", "12345", "1234679304", true, SwishApi.Environment.Emulator);
 
             string instructionUUID = Guid.NewGuid().ToString("N").ToUpper();
 
@@ -168,7 +140,7 @@ namespace SwishApiConsoleTest
 
                     if (statusResponse.status == "PAID")
                     {
-                        var refundClient = new SwishApi.RefundClient("https://tabetaltmedswish.se/Test/RefundCallback/", "1234", true, SwishApi.Environment.Emulator);
+                        var refundClient = new SwishApi.RefundClient(clientCertificate, "https://eofvqci6optquip.m.pipedream.net", "1234", "1234679304", true, SwishApi.Environment.Emulator);
 
                         string instructionUUID2 = Guid.NewGuid().ToString("N").ToUpper();
 
@@ -221,9 +193,15 @@ namespace SwishApiConsoleTest
 
         static void MainTestPayout()
         {
+            var clientCertificate = new SwishApi.Models.ClientCertificate()
+            {
+                CertificateFilePath = "TestCert//Swish_Merchant_TestCertificate_1234679304.p12",
+                Password = "swish"
+            };
+
             string certificatePath = Environment.CurrentDirectory + "\\TestCert\\Swish_Merchant_TestSigningCertificate_1234679304.p12";
 
-            var payoutClient = new SwishApi.PayoutClient("https://tabetaltmedswish.se/Test/PayoutCallback/", "1234", "1234679304", true, SwishApi.Environment.Emulator);
+            var payoutClient = new SwishApi.PayoutClient(clientCertificate, "https://eofvqci6optquip.m.pipedream.net", "1234", "1234679304", true, SwishApi.Environment.Emulator);
 
             string instructionUUID = Guid.NewGuid().ToString("N").ToUpper();
 
