@@ -19,23 +19,6 @@ namespace SwishApi
         readonly bool _enableHTTPLog;
 
         /// <summary>
-        /// Construct a Refund client for Swish Payment, with certificate installed on server
-        /// </summary>
-        /// <param name="apiBaseUrl">Base URL for the Swish Payment API</param>
-        /// <param name="callbackUrl">URL where you like to get the Swish Payment Callback</param>
-        /// <param name="payeePaymentReference">Payment reference supplied by theMerchant. This is not used by Swish but is included in responses back to the client. This reference could for example be an order id or similar. If set the value must not exceed 35 characters and only the following characters are allowed: [a-ö, A-Ö, 0-9, -]</param>
-        /// <param name="enableHTTPLog">Set to true to log HTTP Requests to the Swish Payment API</param>
-        /// /// <param name="environment">Set what environment of Swish Payment API should be used, PROD, SANDBOX or EMULATOR</param>
-        public RefundClient(string callbackUrl, string payeePaymentReference, bool enableHTTPLog = false, string environment = "PROD")
-        {
-            _environment = environment;
-            _certificate = null;
-            _callbackUrl = callbackUrl;
-            _payeePaymentReference = payeePaymentReference;
-            _enableHTTPLog = enableHTTPLog;
-        }
-
-        /// <summary>
         /// Construct a Refund client for Swish Payment, with certificate file
         /// </summary>
         /// <param name="certificatePath">Path where to find the .p12 certificate on disc example: c:\cert\swish.p12</param>

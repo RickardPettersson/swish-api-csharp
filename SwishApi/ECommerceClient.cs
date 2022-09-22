@@ -20,24 +20,6 @@ namespace SwishApi
         readonly bool _enableHTTPLog;
 
         /// <summary>
-        /// Construct a E-Commerce client for Swish Payment, with certificate installed on server
-        /// </summary>
-        /// <param name="callbackUrl">URL where you like to get the Swish Payment Callback</param>
-        /// <param name="payeePaymentReference">Payment reference supplied by theMerchant. This is not used by Swish but is included in responses back to the client. This reference could for example be an order id or similar. If set the value must not exceed 35 characters and only the following characters are allowed: [a-ö, A-Ö, 0-9, -]</param>
-        /// <param name="payeeAlias">The Swish number of the payee. It needs to match with Merchant Swish number.</param>
-        /// <param name="enableHTTPLog">Set to true to log HTTP Requests to the Swish Payment API</param>
-        /// <param name="environment">Set what environment of Swish Payment API should be used, PROD, SANDBOX or EMULATOR</param>
-        public ECommerceClient(string callbackUrl, string payeePaymentReference, string merchantAlias, bool enableHTTPLog = false, string environment = "PROD")
-        {
-            _environment = environment;
-            _certificate = null;
-            _callbackUrl = callbackUrl;
-            _merchantAlias = merchantAlias;
-            _payeePaymentReference = payeePaymentReference;
-            _enableHTTPLog = enableHTTPLog;
-        }
-
-        /// <summary>
         /// Construct a E-Commerce client for Swish Payment, with certificate file
         /// </summary>
         /// <param name="certificatePath">Path where to find the .p12 certificate on disc example: c:\cert\swish.p12</param>
@@ -231,6 +213,7 @@ namespace SwishApi
                     store.Open(OpenFlags.ReadWrite);
 
                     var certs = new X509Certificate2Collection();
+
                     certs.Import(_certificate.Path, _certificate.Password, X509KeyStorageFlags.DefaultKeySet);
 
                     foreach (X509Certificate2 cert in certs)
