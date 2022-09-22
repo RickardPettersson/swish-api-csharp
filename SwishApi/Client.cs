@@ -8,6 +8,10 @@ using System.Text;
 
 namespace SwishApi
 {
+    /*
+     * I have coded new client classes for each type of functionality, see example ECommerceClient.cs for normal payment with swish
+     */
+    [Obsolete("Should not be used anymore, use the new client classes", false)]
     public class Client
     {
         readonly string _baseAPIUrl;
