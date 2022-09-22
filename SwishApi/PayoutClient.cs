@@ -182,6 +182,8 @@ namespace SwishApi
                     Method = HttpMethod.Get
                 };
 
+                httpRequestMessage.Headers.Add("host", httpRequestMessage.RequestUri.Host);
+
                 var response = client.SendAsync(httpRequestMessage).Result;
 
                 string errorMessage = string.Empty;

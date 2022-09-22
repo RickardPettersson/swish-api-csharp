@@ -108,6 +108,8 @@ namespace SwishApi
                     Content = new StringContent(JsonConvert.SerializeObject(requestData), Encoding.UTF8, "application/json")
                 };
 
+                httpRequestMessage.Headers.Add("host", httpRequestMessage.RequestUri.Host);
+
                 var response = client.SendAsync(httpRequestMessage).Result;
 
                 string errorMessage = string.Empty;
@@ -166,6 +168,8 @@ namespace SwishApi
                 {
                     Method = HttpMethod.Get
                 };
+
+                httpRequestMessage.Headers.Add("host", httpRequestMessage.RequestUri.Host);
 
                 var response = client.SendAsync(httpRequestMessage).Result;
 
