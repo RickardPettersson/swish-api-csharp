@@ -33,7 +33,7 @@ namespace SwishApi
         {
             _certificate = new ClientCertificate()
             {
-                Path = certificatePath,
+                CertificateFilePath = certificatePath,
                 Password = certificatePassword
             };
             _environment = environment;
@@ -42,7 +42,25 @@ namespace SwishApi
             _payeePaymentReference = payeePaymentReference;
             _enableHTTPLog = enableHTTPLog;
         }
-        // Guid.NewGuid().ToString("N").ToUpper()
+
+        /// <summary>
+        /// Construct a E-Commerce client for Swish Payment, with certificate file
+        /// </summary>
+        /// <param name="clientCertificate">Client Certificate object</param>
+        /// <param name="callbackUrl">URL where you like to get the Swish Payment Callback</param>
+        /// <param name="payeePaymentReference">Payment reference supplied by theMerchant. This is not used by Swish but is included in responses back to the client. This reference could for example be an order id or similar. If set the value must not exceed 35 characters and only the following characters are allowed: [a-ö, A-Ö, 0-9, -]</param>
+        /// <param name="payeeAlias">The Swish number of the payee. It needs to match with Merchant Swish number.</param>
+        /// <param name="enableHTTPLog">Set to true to log HTTP Requests to the Swish Payment API</param>
+        /// <param name="environment">Set what environment of Swish Payment API should be used, PROD, SANDBOX or EMULATOR</param>
+        public ECommerceClient(ClientCertificate clientCertificate, string callbackUrl, string payeePaymentReference, string merchantAlias, bool enableHTTPLog = false, string environment = "PROD")
+        {
+            _certificate = clientCertificate;
+            _environment = environment;
+            _callbackUrl = callbackUrl;
+            _merchantAlias = merchantAlias;
+            _payeePaymentReference = payeePaymentReference;
+            _enableHTTPLog = enableHTTPLog;
+        }
 
         /// <summary>
         /// Initiate a Swish Payment Request
@@ -212,19 +230,51 @@ namespace SwishApi
                 {
                     store.Open(OpenFlags.ReadWrite);
 
-                    var certs = new X509Certificate2Collection();
-
-                    certs.Import(_certificate.Path, _certificate.Password, X509KeyStorageFlags.DefaultKeySet);
-
-                    foreach (X509Certificate2 cert in certs)
+                    if (string.IsNullOrEmpty(_certificate.CertificateFilePath))
                     {
-                        if (cert.HasPrivateKey)
+                        if (string.IsNullOrEmpty(_certificate.Password))
                         {
-                            handler.ClientCertificates.Add(cert);
+                            var cert = new X509Certificate2(Misc.ReadFully(_certificate.CertificateAsStream));
+
+                            if (cert.HasPrivateKey)
+                            {
+                                handler.ClientCertificates.Add(cert);
+                            }
+                            else
+                            {
+                                store.Add(cert);
+                            }
                         }
                         else
                         {
-                            store.Add(cert);
+                            var cert = new X509Certificate2(Misc.ReadFully(_certificate.CertificateAsStream), _certificate.Password);
+
+                            if (cert.HasPrivateKey)
+                            {
+                                handler.ClientCertificates.Add(cert);
+                            }
+                            else
+                            {
+                                store.Add(cert);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var certs = new X509Certificate2Collection();
+
+                        certs.Import(_certificate.CertificateFilePath, _certificate.Password, X509KeyStorageFlags.DefaultKeySet);
+
+                        foreach (X509Certificate2 cert in certs)
+                        {
+                            if (cert.HasPrivateKey)
+                            {
+                                handler.ClientCertificates.Add(cert);
+                            }
+                            else
+                            {
+                                store.Add(cert);
+                            }
                         }
                     }
                 }
