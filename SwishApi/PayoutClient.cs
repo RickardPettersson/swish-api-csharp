@@ -73,7 +73,7 @@ namespace SwishApi
         /// <param name="signingCertificateSerialNumber">The public key of the certificate will be used to verify the signature. Formated as the serial number of the certificate in hexadecimal format (without the leading ‘0x’). Max length 64 digits.</param>
         /// <param name="signingCertificate">Put in the certificate path and things for signing the payout message, if this paramter is null its using the signingCertificateSerialNumber</param>
         /// <returns></returns>
-        public PayoutRequestResponse MakePayoutRequest(string payerAlias, string payeeSSN, int amount, string message, string instructionUUID, string signingCertificateSerialNumber, ClientCertificate signingCertificate)
+        public PayoutRequestResponse MakePayoutRequest(string payerAlias, string payeeSSN, decimal amount, string message, string instructionUUID, string signingCertificateSerialNumber, ClientCertificate signingCertificate)
         {
             PayoutRequestData payload = null;
 
@@ -88,7 +88,7 @@ namespace SwishApi
                         payerAlias = _merchantAlias, // On payout the payer is the merchant swish number
                         payeeAlias = payerAlias, // On payout the payee is the number where the payout going to be send
                         payeeSSN = payeeSSN,
-                        amount = amount.ToString(),
+                        amount = Math.Round(amount, 2).ToString().Replace(",", "."), // Amount to be paid. Only period/dot (”.”) are accepted as decimal character with maximum 2 digits after. Digits after separator are optional.
                         currency = "SEK",
                         payoutType = "PAYOUT",
                         message = message,
