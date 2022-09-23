@@ -71,7 +71,7 @@ namespace SwishApi
         /// <param name="message">Merchant supplied message about the payment/order. Max 50 characters. Common allowed characters are the letters a-ö, A-Ö, the numbers 0-9, and special characters !?=#$%&()*+,-./:;<'"@. In addition, the following special characters are also allowed: ^¡¢£€¥¿Š§šŽžŒœŸÀÁÂÃÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕØØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ.</param>
         /// <param name="instructionUUID">An identifier created by the merchant to uniquely identify a payout instruction sent to the Swish system. Swish uses this identifier to guarantee the uniqueness of a payout instruction and prevent occurrence of unintended double payments. 32 hexadecimal (16- based) digits. Use Guid.NewGuid().ToString("N").ToUpper()</param>
         /// <returns></returns>
-        public RefundResponse MakeRefundRequest(string originalPaymentReference, string mobileNumberToRefundTo, int amount, string message, string instructionUUID)
+        public RefundResponse MakeRefundRequest(string originalPaymentReference, string mobileNumberToRefundTo, decimal amount, string message, string instructionUUID)
         {
             try
             {
@@ -82,7 +82,7 @@ namespace SwishApi
                     callbackUrl = _callbackUrl,
                     payerAlias = _merchantAlias,
                     payeeAlias = mobileNumberToRefundTo,
-                    amount = amount.ToString(),
+                    amount = Math.Round(amount, 2).ToString().Replace(",", "."), // Amount to be paid. Only period/dot (”.”) are accepted as decimal character with maximum 2 digits after. Digits after separator are optional.
                     currency = "SEK",
                     message = message
                 };
