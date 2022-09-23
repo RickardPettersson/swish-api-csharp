@@ -4,7 +4,7 @@
 
 Enkelt class library byggt i .NET 6 för att hantera API anrop för Swish för Handel.
 
-API dokumentation direkt från Swish själva hittas på https://developer.getswish.se/merchants/ och är från den jag utgått.
+API dokumentation direkt från Swish själva hittas på https://developer.swish.nu/ och är från den jag utgått.
 
 ## Updatering 2022-09-22
 Uppdaterat projektet att köra .Net 6.
