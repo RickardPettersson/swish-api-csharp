@@ -359,7 +359,7 @@ namespace SwishApi
                 }
             }
 
-            client = new HttpClient(new LoggingHandler(handler, true));
+            client = new HttpClient(new LoggingHandler(handler, _enableHTTPLog));
         }
     }
 }
