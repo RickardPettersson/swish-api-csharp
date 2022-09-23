@@ -65,15 +65,15 @@ namespace SwishApi
         /// <summary>
         /// Initiate a Swish Payment Request
         /// </summary>
-        /// <param name="payerAlias">The registered Cell phone number of the person that makes the payment. It can only contain numbers and has to be at least 8 and at most 15 digits. It also needs to match the following format in order to be found in Swish: country code + cell phone number (without leading zero). E.g.: 46712345678 If set, request is handled as E-Commerce payment. If not set, request is handled as M- Commerce payment.</param>
-        /// <param name="payeeSSN">12 digit SSN of the payee. Will be validated against the enrolled SSN of the payee. Formated as YYYYMMDDnnnn</param>
+        /// <param name="payoutTo">The Swish number of where the payout should be send. No preceding “+” or zeros should be added. It should always be started with country code. Numeric, 8-15 digits</param>
+        /// <param name="personalNumber">12 digit personal number for the receiver, this will be validated agains the mobile number the payout going to payed to. Formated as YYYYMMDDnnnn</param>
         /// <param name="amount">The amount of money to pay. The amount cannot be less than 0.01 SEK and not more than 999999999999.99 SEK. Valid value has to be all digits or with 2 digit decimal separated with a period.</param>
         /// <param name="message">Merchant supplied message about the payment/order. Max 50 characters. Common allowed characters are the letters a-ö, A-Ö, the numbers 0-9, and special characters !?=#$%&()*+,-./:;<'"@. In addition, the following special characters are also allowed: ^¡¢£€¥¿Š§šŽžŒœŸÀÁÂÃÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕØØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ.</param>
         /// <param name="instructionUUID">An identifier created by the merchant to uniquely identify a payout instruction sent to the Swish system. Swish uses this identifier to guarantee the uniqueness of a payout instruction and prevent occurrence of unintended double payments. 32 hexadecimal (16- based) digits. Use Guid.NewGuid().ToString("N").ToUpper()</param>
         /// <param name="signingCertificateSerialNumber">The public key of the certificate will be used to verify the signature. Formated as the serial number of the certificate in hexadecimal format (without the leading ‘0x’). Max length 64 digits.</param>
         /// <param name="signingCertificate">Put in the certificate path and things for signing the payout message, if this paramter is null its using the signingCertificateSerialNumber</param>
         /// <returns></returns>
-        public PayoutRequestResponse MakePayoutRequest(string payerAlias, string payeeSSN, decimal amount, string message, string instructionUUID, string signingCertificateSerialNumber, ClientCertificate signingCertificate)
+        public PayoutRequestResponse MakePayoutRequest(string payoutTo, string personalNumber, decimal amount, string message, string instructionUUID, string signingCertificateSerialNumber, ClientCertificate signingCertificate)
         {
             PayoutRequestData payload = null;
 
@@ -86,8 +86,8 @@ namespace SwishApi
                         payoutInstructionUUID = instructionUUID,
                         payerPaymentReference = _payeePaymentReference,
                         payerAlias = _merchantAlias, // On payout the payer is the merchant swish number
-                        payeeAlias = payerAlias, // On payout the payee is the number where the payout going to be send
-                        payeeSSN = payeeSSN,
+                        payeeAlias = payoutTo, // On payout the payee is the number where the payout going to be send
+                        payeeSSN = personalNumber,
                         amount = Math.Round(amount, 2).ToString().Replace(",", "."), // Amount to be paid. Only period/dot (”.”) are accepted as decimal character with maximum 2 digits after. Digits after separator are optional.
                         currency = "SEK",
                         payoutType = "PAYOUT",
