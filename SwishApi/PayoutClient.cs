@@ -75,6 +75,8 @@ namespace SwishApi
         /// <returns></returns>
         public PayoutRequestResponse MakePayoutRequest(string payerAlias, string payeeSSN, int amount, string message, string instructionUUID, string signingCertificateSerialNumber, ClientCertificate signingCertificate)
         {
+            PayoutRequestData payload = null;
+
             try
             {
                 var requestEnvelope = new PayoutRequestEnvelope()
@@ -96,6 +98,8 @@ namespace SwishApi
                     callbackUrl = _callbackUrl
                 };
                 requestEnvelope.buildSignature(signingCertificate);
+
+                payload = requestEnvelope.payload;
 
                 HttpClientHandler handler;
                 HttpClient client;
@@ -149,6 +153,7 @@ namespace SwishApi
                 {
                     Error = errorMessage,
                     Location = location,
+                    Payload = payload,
                     JSON = "" // Old stuff to remove after removed Client.cs
                 };
             }
@@ -158,6 +163,7 @@ namespace SwishApi
                 {
                     Error = ex.ToString(),
                     Location = "",
+                    Payload = payload,
                     JSON = "" // Old stuff to remove after removed Client.cs
                 };
             }
