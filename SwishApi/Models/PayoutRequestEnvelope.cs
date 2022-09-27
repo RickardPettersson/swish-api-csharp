@@ -46,7 +46,7 @@ namespace SwishApi.Models
 
         public void buildSignature(ClientCertificate signingCertificate)
         {
-            if (string.IsNullOrEmpty(signingCertificate.CertificateFilePath))
+            if (!string.IsNullOrEmpty(signingCertificate.CertificateFilePath))
             {
                 X509Certificate2 cert = FindSignatureCertificate(payload.signingCertificateSerialNumber, signingCertificate.CertificateFilePath, signingCertificate.Password);
 
