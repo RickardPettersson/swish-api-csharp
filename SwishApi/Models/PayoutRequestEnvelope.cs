@@ -46,44 +46,97 @@ namespace SwishApi.Models
 
         public void buildSignature(ClientCertificate signingCertificate)
         {
-            if (!string.IsNullOrEmpty(signingCertificate.CertificateFilePath))
+            if (signingCertificate.UseMachineKeySet)
             {
-                X509Certificate2 cert = FindSignatureCertificate(payload.signingCertificateSerialNumber, signingCertificate.CertificateFilePath, signingCertificate.Password);
-
-                if (cert == null)
+                if (string.IsNullOrEmpty(signingCertificate.Password))
                 {
-                    throw new Exception("No signing certificate found!");
+                    if (signingCertificate.SecureStringPassword != null)
+                    {
+                        var cert = new X509Certificate2(Misc.ReadFully(signingCertificate.CertificateAsStream), signingCertificate.SecureStringPassword, X509KeyStorageFlags.MachineKeySet);
+
+                        if (cert == null)
+                        {
+                            throw new Exception("No signing certificate found!");
+                        }
+
+                        // Sign
+                        using (var rsa = cert.GetRSAPrivateKey()) // Get private key
+                        using (var sha = new SHA512Managed()) // Get SHA512 instance
+                        {
+                            var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(payload)); // Get payload as bytes
+                            var hash = sha.ComputeHash(bytes); // Hash
+                                                               // Note that hashing is done twice. Once above and once in the SignData function. This is required!
+                            var sign = rsa.SignData(hash, HashAlgorithmName.SHA512, RSASignaturePadding.Pkcs1);
+                            signature = Convert.ToBase64String(sign); // Save signature
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("SigningCertificate password missing set wish needed to use with MachineKeySet");
+                    }
                 }
-
-                // Sign
-                using (var rsa = cert.GetRSAPrivateKey()) // Get private key
-                using (var sha = new SHA512Managed()) // Get SHA512 instance
+                else
                 {
-                    var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(payload)); // Get payload as bytes
-                    var hash = sha.ComputeHash(bytes); // Hash
-                                                       // Note that hashing is done twice. Once above and once in the SignData function. This is required!
-                    var sign = rsa.SignData(hash, HashAlgorithmName.SHA512, RSASignaturePadding.Pkcs1);
-                    signature = Convert.ToBase64String(sign); // Save signature
+                    var cert = new X509Certificate2(Misc.ReadFully(signingCertificate.CertificateAsStream), signingCertificate.Password, X509KeyStorageFlags.MachineKeySet);
+
+                    if (cert == null)
+                    {
+                        throw new Exception("No signing certificate found!");
+                    }
+
+                    // Sign
+                    using (var rsa = cert.GetRSAPrivateKey()) // Get private key
+                    using (var sha = new SHA512Managed()) // Get SHA512 instance
+                    {
+                        var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(payload)); // Get payload as bytes
+                        var hash = sha.ComputeHash(bytes); // Hash
+                                                           // Note that hashing is done twice. Once above and once in the SignData function. This is required!
+                        var sign = rsa.SignData(hash, HashAlgorithmName.SHA512, RSASignaturePadding.Pkcs1);
+                        signature = Convert.ToBase64String(sign); // Save signature
+                    }
                 }
             }
             else
             {
-                var cert = new X509Certificate2(Misc.ReadFully(signingCertificate.CertificateAsStream), signingCertificate.Password);
-
-                if (cert == null)
+                if (!string.IsNullOrEmpty(signingCertificate.CertificateFilePath))
                 {
-                    throw new Exception("No signing certificate found!");
+                    X509Certificate2 cert = FindSignatureCertificate(payload.signingCertificateSerialNumber, signingCertificate.CertificateFilePath, signingCertificate.Password);
+
+                    if (cert == null)
+                    {
+                        throw new Exception("No signing certificate found!");
+                    }
+
+                    // Sign
+                    using (var rsa = cert.GetRSAPrivateKey()) // Get private key
+                    using (var sha = new SHA512Managed()) // Get SHA512 instance
+                    {
+                        var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(payload)); // Get payload as bytes
+                        var hash = sha.ComputeHash(bytes); // Hash
+                                                           // Note that hashing is done twice. Once above and once in the SignData function. This is required!
+                        var sign = rsa.SignData(hash, HashAlgorithmName.SHA512, RSASignaturePadding.Pkcs1);
+                        signature = Convert.ToBase64String(sign); // Save signature
+                    }
                 }
-
-                // Sign
-                using (var rsa = cert.GetRSAPrivateKey()) // Get private key
-                using (var sha = new SHA512Managed()) // Get SHA512 instance
+                else
                 {
-                    var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(payload)); // Get payload as bytes
-                    var hash = sha.ComputeHash(bytes); // Hash
-                                                       // Note that hashing is done twice. Once above and once in the SignData function. This is required!
-                    var sign = rsa.SignData(hash, HashAlgorithmName.SHA512, RSASignaturePadding.Pkcs1);
-                    signature = Convert.ToBase64String(sign); // Save signature
+                    var cert = new X509Certificate2(Misc.ReadFully(signingCertificate.CertificateAsStream), signingCertificate.Password);
+
+                    if (cert == null)
+                    {
+                        throw new Exception("No signing certificate found!");
+                    }
+
+                    // Sign
+                    using (var rsa = cert.GetRSAPrivateKey()) // Get private key
+                    using (var sha = new SHA512Managed()) // Get SHA512 instance
+                    {
+                        var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(payload)); // Get payload as bytes
+                        var hash = sha.ComputeHash(bytes); // Hash
+                                                           // Note that hashing is done twice. Once above and once in the SignData function. This is required!
+                        var sign = rsa.SignData(hash, HashAlgorithmName.SHA512, RSASignaturePadding.Pkcs1);
+                        signature = Convert.ToBase64String(sign); // Save signature
+                    }
                 }
             }
         }

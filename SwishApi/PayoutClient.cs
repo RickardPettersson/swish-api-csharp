@@ -242,55 +242,80 @@ namespace SwishApi
 
             if (_certificate != null)
             {
-                // Got help for this code on https://stackoverflow.com/questions/61677247/can-a-p12-file-with-ca-certificates-be-used-in-c-sharp-without-importing-them-t
-                using (X509Store store = new X509Store(StoreName.CertificateAuthority, StoreLocation.CurrentUser))
+                if (_certificate.UseMachineKeySet)
                 {
-                    store.Open(OpenFlags.ReadWrite);
-
-                    if (string.IsNullOrEmpty(_certificate.CertificateFilePath))
+                    if (string.IsNullOrEmpty(_certificate.Password))
                     {
-                        if (string.IsNullOrEmpty(_certificate.Password))
+                        if (_certificate.SecureStringPassword != null)
                         {
-                            var cert = new X509Certificate2(Misc.ReadFully(_certificate.CertificateAsStream));
+                            var cert = new X509Certificate2(Misc.ReadFully(_certificate.CertificateAsStream), _certificate.SecureStringPassword, X509KeyStorageFlags.MachineKeySet);
 
-                            if (cert.HasPrivateKey)
-                            {
-                                handler.ClientCertificates.Add(cert);
-                            }
-                            else
-                            {
-                                store.Add(cert);
-                            }
+                            handler.ClientCertificates.Add(cert);
                         }
                         else
                         {
-                            var cert = new X509Certificate2(Misc.ReadFully(_certificate.CertificateAsStream), _certificate.Password);
-
-                            if (cert.HasPrivateKey)
-                            {
-                                handler.ClientCertificates.Add(cert);
-                            }
-                            else
-                            {
-                                store.Add(cert);
-                            }
+                            throw new Exception("Certificate password missing set wish needed to use with MachineKeySet");
                         }
                     }
                     else
                     {
-                        var certs = new X509Certificate2Collection();
+                        var cert = new X509Certificate2(Misc.ReadFully(_certificate.CertificateAsStream), _certificate.Password, X509KeyStorageFlags.MachineKeySet);
 
-                        certs.Import(_certificate.CertificateFilePath, _certificate.Password, X509KeyStorageFlags.DefaultKeySet);
+                        handler.ClientCertificates.Add(cert);
+                    }
+                }
+                else
+                {
+                    // Got help for this code on https://stackoverflow.com/questions/61677247/can-a-p12-file-with-ca-certificates-be-used-in-c-sharp-without-importing-them-t
+                    using (X509Store store = new X509Store(StoreName.CertificateAuthority, StoreLocation.CurrentUser))
+                    {
+                        store.Open(OpenFlags.ReadWrite);
 
-                        foreach (X509Certificate2 cert in certs)
+                        if (string.IsNullOrEmpty(_certificate.CertificateFilePath))
                         {
-                            if (cert.HasPrivateKey)
+                            if (string.IsNullOrEmpty(_certificate.Password))
                             {
-                                handler.ClientCertificates.Add(cert);
+                                var cert = new X509Certificate2(Misc.ReadFully(_certificate.CertificateAsStream));
+
+                                if (cert.HasPrivateKey)
+                                {
+                                    handler.ClientCertificates.Add(cert);
+                                }
+                                else
+                                {
+                                    store.Add(cert);
+                                }
                             }
                             else
                             {
-                                store.Add(cert);
+                                var cert = new X509Certificate2(Misc.ReadFully(_certificate.CertificateAsStream), _certificate.Password);
+
+                                if (cert.HasPrivateKey)
+                                {
+                                    handler.ClientCertificates.Add(cert);
+                                }
+                                else
+                                {
+                                    store.Add(cert);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            var certs = new X509Certificate2Collection();
+
+                            certs.Import(_certificate.CertificateFilePath, _certificate.Password, X509KeyStorageFlags.DefaultKeySet);
+
+                            foreach (X509Certificate2 cert in certs)
+                            {
+                                if (cert.HasPrivateKey)
+                                {
+                                    handler.ClientCertificates.Add(cert);
+                                }
+                                else
+                                {
+                                    store.Add(cert);
+                                }
                             }
                         }
                     }
