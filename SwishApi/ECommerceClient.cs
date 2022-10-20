@@ -219,6 +219,76 @@ namespace SwishApi
             }
         }
 
+        /// <summary>
+        /// Cancel a Swish Payment Request
+        /// </summary>
+        /// <param name="paymentLocationURL">Payment response location url</param>
+        /// <returns></returns>
+        public CancelPaymentResponse CancelPaymentRequest(string paymentLocationURL)
+        {
+            try
+            {
+                var o = new CancelPaymentRequest()
+                {
+                    op = "replace",
+                    path = "/status",
+                    value = "cancelled"
+                };
+
+                var requestData = new List<CancelPaymentRequest>() { o };
+
+                HttpClientHandler handler;
+                HttpClient client;
+                PrepareHttpClientAndHandler(out handler, out client);
+
+                var httpRequestMessage = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Patch,
+                    RequestUri = new Uri(paymentLocationURL),
+                    Content = new StringContent(JsonConvert.SerializeObject(requestData), Encoding.UTF8, "application/json-patch+json")
+                };
+
+                httpRequestMessage.Headers.Add("host", httpRequestMessage.RequestUri.Host);
+
+                var response = client.SendAsync(httpRequestMessage).Result;
+
+                string errorMessage = string.Empty;
+                string location = string.Empty;
+
+                CancelPaymentResponse r;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var readAsStringAsync = response.Content.ReadAsStringAsync();
+                    string jsonResponse = readAsStringAsync.Result;
+
+                    r = JsonConvert.DeserializeObject<CancelPaymentResponse>(jsonResponse);
+                }
+                else
+                {
+                    var readAsStringAsync = response.Content.ReadAsStringAsync();
+                    errorMessage = readAsStringAsync.Result;
+
+                    r = new CancelPaymentResponse()
+                    {
+                        ErrorMessage = errorMessage
+                    };
+                }
+
+                client.Dispose();
+                handler.Dispose();
+
+                return r;
+            }
+            catch (Exception ex)
+            {
+                return new CancelPaymentResponse()
+                {
+                    ErrorMessage = ex.ToString()
+                };
+            }
+        }
+
         private void PrepareHttpClientAndHandler(out HttpClientHandler handler, out HttpClient client)
         {
             handler = new HttpClientHandler();

@@ -9,9 +9,10 @@ namespace SwishApiConsoleTest
             /*
              * Uncomment what function you like to test
              */
-            //MainTestPayment();
+            MainTestPayment();
             //MainTestQCommerce();
-            MainTestPayout();
+            //MainTestCancelPayment();
+            //MainTestPayout();
         }
 
         // MainTestPaymentAndRefund
@@ -186,6 +187,50 @@ namespace SwishApiConsoleTest
             {
                 Console.WriteLine("ERROR Get QR Code: " + getQRCodeResponse.Error);
             }
+
+            Console.WriteLine(">>> Press enter to exit <<<");
+            Console.ReadLine();
+        }
+
+        // Test cancel payment
+        static void MainTestCancelPayment()
+        {
+            var clientCertificate = new SwishApi.Models.ClientCertificate()
+            {
+                CertificateAsStream = System.IO.File.OpenRead("TestCert//Swish_Merchant_TestCertificate_1234679304.p12"),
+                Password = "swish"
+            };
+
+            var eCommerceClient = new SwishApi.ECommerceClient(clientCertificate, "https://eow7hpmlfs99yn0.m.pipedream.net", "12345", "1234679304", true, SwishApi.Environment.Emulator);
+
+            string instructionUUID = Guid.NewGuid().ToString("N").ToUpper();
+
+            // Make the Payement Request
+            var response = eCommerceClient.MakePaymentRequest("1234679304", 1, "Test", instructionUUID);
+
+            // Check if the payment request got success and not got any error
+            if (string.IsNullOrEmpty(response.Error))
+            {
+                // All OK
+                string paymentReferenceURL = response.Location;
+
+                // {"id":"63C26F360CEA403B955FCDCCE7352502","payeePaymentReference":"12345","paymentReference":"59DD805C66F44665AD44A21460B3002A","callbackUrl":"https://eow7hpmlfs99yn0.m.pipedream.net","payerAlias":"1234679304","payeeAlias":"1234679304","amount":1.00,"currency":"SEK","message":"Test","status":"CANCELLED","dateCreated":"2022-10-20T08:38:36.749Z","datePaid":null,"errorCode":"RP08","errorMessage":"The payment request has been cancelled."}
+                var cancelResponse = eCommerceClient.CancelPaymentRequest(paymentReferenceURL);
+
+                if (!string.IsNullOrEmpty(cancelResponse.status) && cancelResponse.status == "CANCELLED")
+                {
+                    Console.WriteLine("Payment is cancelled!");
+                } else
+                {
+                    Console.WriteLine("Something got wrong when try to cancel the paymnent: " + cancelResponse.ErrorMessage);
+                }
+            }
+            else
+            {
+                // ERROR
+                Console.WriteLine("MakePaymentRequest - ERROR: " + response.Error);
+            }
+
 
             Console.WriteLine(">>> Press enter to exit <<<");
             Console.ReadLine();
