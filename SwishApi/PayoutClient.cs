@@ -2,6 +2,7 @@
 using SwishApi.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
@@ -248,18 +249,21 @@ namespace SwishApi
                     {
                         if (_certificate.SecureStringPassword != null)
                         {
-                            var cert = new X509Certificate2(Misc.ReadFully(_certificate.CertificateAsStream), _certificate.SecureStringPassword, X509KeyStorageFlags.MachineKeySet);
+                            var cert = new X509Certificate2(Misc.ReadFully(_certificate.CertificateAsStream),
+                                _certificate.SecureStringPassword, X509KeyStorageFlags.MachineKeySet);
 
                             handler.ClientCertificates.Add(cert);
                         }
                         else
                         {
-                            throw new Exception("Certificate password missing set wish needed to use with MachineKeySet");
+                            throw new Exception(
+                                "Certificate password missing set wish needed to use with MachineKeySet");
                         }
                     }
                     else
                     {
-                        var cert = new X509Certificate2(Misc.ReadFully(_certificate.CertificateAsStream), _certificate.Password, X509KeyStorageFlags.MachineKeySet);
+                        var cert = new X509Certificate2(Misc.ReadFully(_certificate.CertificateAsStream),
+                            _certificate.Password, X509KeyStorageFlags.MachineKeySet);
 
                         handler.ClientCertificates.Add(cert);
                     }
@@ -267,62 +271,44 @@ namespace SwishApi
                 else
                 {
                     // Got help for this code on https://stackoverflow.com/questions/61677247/can-a-p12-file-with-ca-certificates-be-used-in-c-sharp-without-importing-them-t
-                    using (X509Store store = new X509Store(StoreName.CertificateAuthority, StoreLocation.CurrentUser))
-                    {
-                        store.Open(OpenFlags.ReadWrite);
+                    // using (X509Store store = new X509Store(StoreName.CertificateAuthority, StoreLocation.CurrentUser))
 
-                        if (string.IsNullOrEmpty(_certificate.CertificateFilePath))
-                        {
-                            if (string.IsNullOrEmpty(_certificate.Password))
-                            {
-                                var cert = new X509Certificate2(Misc.ReadFully(_certificate.CertificateAsStream));
+                    var certBytes = string.IsNullOrEmpty(_certificate.CertificateFilePath) ?
+                        Misc.ReadFully(_certificate.CertificateAsStream) :
+                        File.ReadAllBytes(_certificate.CertificateFilePath);
 
-                                if (cert.HasPrivateKey)
-                                {
-                                    handler.ClientCertificates.Add(cert);
-                                }
-                                else
-                                {
-                                    store.Add(cert);
-                                }
-                            }
-                            else
-                            {
-                                var cert = new X509Certificate2(Misc.ReadFully(_certificate.CertificateAsStream), _certificate.Password);
+                    //https://github.com/RickardPettersson/swish-api-csharp/issues/29
+                    //Handle the certificate the same way if its from a file or a stream
+                    SetCertificate(handler, certBytes, _certificate.Password);
 
-                                if (cert.HasPrivateKey)
-                                {
-                                    handler.ClientCertificates.Add(cert);
-                                }
-                                else
-                                {
-                                    store.Add(cert);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            var certs = new X509Certificate2Collection();
-
-                            certs.Import(_certificate.CertificateFilePath, _certificate.Password, X509KeyStorageFlags.DefaultKeySet);
-
-                            foreach (X509Certificate2 cert in certs)
-                            {
-                                if (cert.HasPrivateKey)
-                                {
-                                    handler.ClientCertificates.Add(cert);
-                                }
-                                else
-                                {
-                                    store.Add(cert);
-                                }
-                            }
-                        }
-                    }
                 }
             }
 
             client = new HttpClient(new LoggingHandler(handler, _enableHTTPLog));
+        }
+
+        private static void SetCertificate(HttpClientHandler handler, byte[] certBytes, string password)
+        {
+            var certs = new X509Certificate2Collection();
+
+            certs.Import(certBytes, password);
+
+            foreach (var cert in certs)
+            {
+                if (cert.HasPrivateKey)
+                {
+                    handler.ClientCertificates.Add(cert);
+                }
+                else
+                {
+                    //Add the intermediate certificate to the trusted root store
+                    //which acts as a cache during the TLS handshake
+                    using var store = new X509Store(StoreName.CertificateAuthority,
+                        StoreLocation.CurrentUser);
+                    store.Open(OpenFlags.ReadWrite);
+                    store.Add(cert);
+                }
+            }
         }
     }
 }
