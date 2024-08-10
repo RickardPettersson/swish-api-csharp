@@ -1,49 +1,21 @@
-# Swish för handel .NET Standard Library
+# Swish för handel .NET 7 class library
 
 ---
 
-Enkelt class library byggt i .NET 6 för att hantera API anrop för Swish för Handel.
+Enkelt class library byggt i .NET 7 för att hantera API anrop för Swish för Handel.
 
 API dokumentation direkt från Swish själva hittas på https://developer.swish.nu/ och är från den jag utgått.
 
-## Updatering 2022-09-22
-Uppdaterat projektet att köra .Net 6.
+## Updatering 2024-08-10
+Uppdaterat projektet att köra .Net 7
 
-Jag har byggt nya C# klasser för varje typ av Swish function för att göra koden renare och uppdaterat med ett par önskemål som funnits.
+Certifikat hanteringen är nu utflyttad till en eget class fil och används nu av samtliga clienter istället för samma kod i flera clienter.
 
-Här är namnen på klient klasserna: ECommerceClient, MCommerceClient, RefundClient och RefundClient och om ni är insatta i Swish För Handel så tror jag ni känner igen namnen och förstår vad varje är till för.
+Inlagt i certifikat hanteringen är även kod fixar som inkommit från github communityt.
 
-Det har byggts in funktion att kunna skicka in en Stream av klient certifikatet istället för en sökväg till filen. 
+Jag har lagt in ett nytt certifikat som heter "Swish_Merchant_TestCertificate2_1234679304.p12" i test console appen som jag fått från GetSwish AB då den nya emulator paketet sedan 2023 innehåller ett certfikat som .Net säger inte har samma lösenord som dem utger sig att ha i dokumentationen, supporten gav mig detta certifikat som fungerar för emuleringen så bifogar den numera i test projektet.
 
-Jag har även lagt in så vid varje anrop läggs en host header in för att undvika ett problem med SendAsync kommandot för HttpClient.
-
-SwishApiConsoleTest projektet är uppdaterat och kör med dem nya klient class koden.
-
-Den gamla Client.cs koden är fortfarande kvar så det är just nu bakåt kompatibelt men jag har satt ett Obsolete attribute på C# classen och jag vill att ni går över till dem nya klient classerna, den gamla kommer tas bort framöver.
-
-Sista grejen jag gjort är att jag inkluderat en model som heter PaymentCallback och tror namnet säger sig själv och då uppdaterat Callback kod exemplet nedan att använda denna class.
-
-## Updatering 2021-07-08
-
-Godkände och mergeat in ändringar från en Pull Request att köra detta med .Net 5 + support för att inte ha certifikatet lokalt, dessa ändringar är gjorda av Per Samuellsson (https://github.com/per-samuelsson), stort tack!
-
-## Updatering 2021-03-04
-
-Godkände och mergeat in ändringar från en Pull Request för att köra Siwsh Payouts, ändringarna är gjorda av Pierre Schönbeck (https://github.com/ikinz), stort tack!
-
-## Updatering 2020-05-20
-
-Jag har uppdateat GetSwish ABs test certifikat så koden fungerar i github repositoryt igen i test miljö.
-
-## Updatering 2020-05-09
-
-Efter en lång period som koden inte fungerat så har jag fått hjälp av en rad olika utvecklare och till slut fick vi veta vad som var felet och har nu åtgärdat det.
-
-NuGet paketet uppdaterat med senaste koden.
-
-## Updatering 2021-03-04
-
-Pierre Schönbeck (ikinz på github) har skickat in en pull request på implementation av Payout apierna, stort tack för det Pierre!
+Har även tagit bort gamla Client.cs som sedan tidigare haft Obsolete flagga på sig i koden så ingen bör använda den längre.
 
 ## Testa
 
@@ -55,7 +27,7 @@ Console appen gör en Payment Request, en kontroll av statusen på Payment Reque
 Antingen installerar du class library:et från detta repository eller så installerar du det genom NuGet: https://www.nuget.org/packages/SwishApi
 
 ```powershell
-PM> Install-Package SwishApi -Version 1.2.0
+PM> Install-Package SwishApi -Version 2.0.7
 ```
 
 ## Kom igång enkelt
