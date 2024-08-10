@@ -8,14 +8,14 @@
     <Copyright>Rickard Pettersson @ https://RickardP.se</Copyright>
     <Authors>Rickard Pettersson</Authors>
     <Company>RickardP.se</Company>
-    <Description>Enkelt class library byggt i .Net Standard Library för att hantera API anrop för Swish för Handel.</Description>
+    <Description>Enkelt class library byggt i .Net 7 för att hantera API anrop för Swish för Handel.</Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageTags>Swish, .Net, C#, GetSwish AB</PackageTags>
     <RepositoryType>GIT</RepositoryType>
-    <AssemblyVersion>1.1.0.0</AssemblyVersion>
-    <FileVersion>1.1.0.0</FileVersion>
-    <Version>2.0.6</Version>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <FileVersion>1.2.0.0</FileVersion>
+    <Version>2.0.7</Version>
   </PropertyGroup>
 
   <ItemGroup>
