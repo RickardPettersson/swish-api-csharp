@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace SwishApiConsoleTest
 {
@@ -20,11 +21,13 @@ namespace SwishApiConsoleTest
         {
             var clientCertificate = new SwishApi.Models.ClientCertificate()
             {
-                CertificateAsStream = System.IO.File.OpenRead("TestCert//Swish_Merchant_TestCertificate_1234679304.p12"),
-                Password = "swish"
+                //CertificateAsStream = System.IO.File.OpenRead("TestCert//Swish_Merchant_TestCertificate_1234679304.p12"),
+                CertificateFilePath = "TestCert//Swish_Merchant_TestCertificate2_1234679304.p12",
+                Password = "swish",
+                UseMachineKeySet = true
             };
 
-            var eCommerceClient = new SwishApi.ECommerceClient(clientCertificate, "https://eofvqci6optquip.m.pipedream.net", "12345", "1234679304", true, SwishApi.Environment.Emulator);
+            var eCommerceClient = new SwishApi.ECommerceClient(clientCertificate, "https://eo486cwao01o9rl.m.pipedream.net", "12345", "1234679304", true, SwishApi.Environment.Emulator);
 
             string instructionUUID = Guid.NewGuid().ToString("N").ToUpper();
 
@@ -114,7 +117,7 @@ namespace SwishApiConsoleTest
                 Password = "swish"
             };
 
-            var mCommerceClient = new SwishApi.MCommerceClient(clientCertificate, "https://eofvqci6optquip.m.pipedream.net", "12345", "1234679304", true, SwishApi.Environment.Emulator);
+            var mCommerceClient = new SwishApi.MCommerceClient(clientCertificate, "https://eo486cwao01o9rl.m.pipedream.net", "12345", "1234679304", true, SwishApi.Environment.Emulator);
 
             string instructionUUID = Guid.NewGuid().ToString("N").ToUpper();
 

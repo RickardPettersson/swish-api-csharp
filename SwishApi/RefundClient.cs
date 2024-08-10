@@ -90,7 +90,7 @@ namespace SwishApi
 
                 HttpClientHandler handler;
                 HttpClient client;
-                PrepareHttpClientAndHandler(out handler, out client);
+                PrepareHttpClientAndHandler.LoadCert(_certificate, out handler, out client, _enableHTTPLog);
 
                 string requestURL = URL.ProductionRefundRequest + instructionUUID;
 
@@ -166,7 +166,7 @@ namespace SwishApi
             {
                 HttpClientHandler handler;
                 HttpClient client;
-                PrepareHttpClientAndHandler(out handler, out client);
+                PrepareHttpClientAndHandler.LoadCert(_certificate, out handler, out client, _enableHTTPLog);
                 client.BaseAddress = new Uri(url);
 
 
@@ -219,80 +219,6 @@ namespace SwishApi
                     errorCode = "Exception",
                     errorMessage = ex.ToString()
                 };
-            }
-        }
-
-        private void PrepareHttpClientAndHandler(out HttpClientHandler handler, out HttpClient client)
-        {
-            handler = new HttpClientHandler();
-
-            if (_certificate != null)
-            {
-                if (_certificate.UseMachineKeySet)
-                {
-                    if (string.IsNullOrEmpty(_certificate.Password))
-                    {
-                        if (_certificate.SecureStringPassword != null)
-                        {
-                            var cert = new X509Certificate2(Misc.ReadFully(_certificate.CertificateAsStream),
-                                _certificate.SecureStringPassword, X509KeyStorageFlags.MachineKeySet);
-
-                            handler.ClientCertificates.Add(cert);
-                        }
-                        else
-                        {
-                            throw new Exception(
-                                "Certificate password missing set wish needed to use with MachineKeySet");
-                        }
-                    }
-                    else
-                    {
-                        var cert = new X509Certificate2(Misc.ReadFully(_certificate.CertificateAsStream),
-                            _certificate.Password, X509KeyStorageFlags.MachineKeySet);
-
-                        handler.ClientCertificates.Add(cert);
-                    }
-                }
-                else
-                {
-                    // Got help for this code on https://stackoverflow.com/questions/61677247/can-a-p12-file-with-ca-certificates-be-used-in-c-sharp-without-importing-them-t
-                    // using (X509Store store = new X509Store(StoreName.CertificateAuthority, StoreLocation.CurrentUser))
-
-                    var certBytes = string.IsNullOrEmpty(_certificate.CertificateFilePath) ?
-                        Misc.ReadFully(_certificate.CertificateAsStream) :
-                        File.ReadAllBytes(_certificate.CertificateFilePath);
-
-                    //https://github.com/RickardPettersson/swish-api-csharp/issues/29
-                    //Handle the certificate the same way if its from a file or a stream
-                    SetCertificate(handler, certBytes, _certificate.Password);
-
-                }
-            }
-
-            client = new HttpClient(new LoggingHandler(handler, _enableHTTPLog));
-        }
-
-        private static void SetCertificate(HttpClientHandler handler, byte[] certBytes, string password)
-        {
-            var certs = new X509Certificate2Collection();
-
-            certs.Import(certBytes, password);
-
-            foreach (var cert in certs)
-            {
-                if (cert.HasPrivateKey)
-                {
-                    handler.ClientCertificates.Add(cert);
-                }
-                else
-                {
-                    //Add the intermediate certificate to the trusted root store
-                    //which acts as a cache during the TLS handshake
-                    using var store = new X509Store(StoreName.CertificateAuthority,
-                        StoreLocation.CurrentUser);
-                    store.Open(OpenFlags.ReadWrite);
-                    store.Add(cert);
-                }
             }
         }
     }

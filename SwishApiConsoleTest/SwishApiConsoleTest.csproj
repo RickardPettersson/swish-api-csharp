@@ -6,6 +6,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="TestCert\Swish_Merchant_TestCertificate2_1234679304.p12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="TestCert\Swish_Merchant_TestCertificate2_1234679304.p12">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\SwishApi\SwishApi.csproj" />
   </ItemGroup>
 
