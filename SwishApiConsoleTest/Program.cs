@@ -243,18 +243,18 @@ namespace SwishApiConsoleTest
         {
             var clientCertificate = new SwishApi.Models.ClientCertificate()
             {
-                CertificateFilePath = "TestCert//Swish_Merchant_TestCertificate_1234679304.p12",
+                CertificateFilePath = "TestCert//Swish_Merchant_TestCertificate2_1234679304.p12",
                 Password = "swish"
             };
 
-            string certificatePath = Environment.CurrentDirectory + "\\TestCert\\Swish_Merchant_TestSigningCertificate_1234679304.p12";
+            string sigingCertificatePath = Environment.CurrentDirectory + "\\TestCert\\Swish_Merchant_TestSigningCertificate_1234679304.p12";
 
             var payoutClient = new SwishApi.PayoutClient(clientCertificate, "https://eofvqci6optquip.m.pipedream.net", "1234", "1234679304", true, SwishApi.Environment.Emulator);
 
             string instructionUUID = Guid.NewGuid().ToString("N").ToUpper();
 
             // Test payeeAlias and payeeSSN from MSS_UserGuide_v1.9.pdf
-            var response = payoutClient.MakePayoutRequest("46722334455", "197501088327", 1, "Test", instructionUUID, "7d70445ec8ef4d1e3a713427e973d097", new SwishApi.Models.ClientCertificate() { CertificateFilePath = certificatePath, Password = "swish" });
+            var response = payoutClient.MakePayoutRequest("46722334455", "197501088327", 1, "Test", instructionUUID, "7d70445ec8ef4d1e3a713427e973d097", new SwishApi.Models.ClientCertificate() { CertificateFilePath = sigingCertificatePath, Password = "swish" });
 
             if (string.IsNullOrEmpty(response.Error))
             {
