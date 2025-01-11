@@ -100,8 +100,7 @@ namespace SwishApi
                         requestURL = URL.EmulatorPaymentRequest + instructionUUID;
                         break;
                     case "SANDBOX":
-                        requestURL = URL.SandboxPaymentRequest;
-                        httpMethod = HttpMethod.Post;
+                        requestURL = URL.SandboxPaymentRequest + instructionUUID;
                         break;
                 }
 

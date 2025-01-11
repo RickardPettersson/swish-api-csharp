@@ -102,8 +102,7 @@ namespace SwishApi
                         requestURL = URL.EmulatorRefundRequest + instructionUUID;
                         break;
                     case "SANDBOX":
-                        requestURL = URL.SandboxRefundRequest;
-                        httpMethod = HttpMethod.Post;
+                        requestURL = URL.SandboxRefundRequest + instructionUUID;
                         break;
                 }
 

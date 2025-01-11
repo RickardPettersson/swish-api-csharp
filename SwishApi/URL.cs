@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,10 +16,10 @@ namespace SwishApi
 
 
         public static string SandboxBaseURL = "https://staging.getswish.pub.tds.tieto.com/";
-        public static string SandboxPaymentRequest = SandboxBaseURL + "cpc-swish/api/v1/paymentrequests/";
+        public static string SandboxPaymentRequest = SandboxBaseURL + "swish-cpcapi/api/v2/paymentrequests/";
         public static string SandboxGetQRCodeByToken = SandboxBaseURL + "qrg-swish/api/v1/commerce";
-        public static string SandboxRefundRequest = SandboxBaseURL + "cpc-swish/api/v1/refunds/";
-        public static string SandboxPayoutRequest = SandboxBaseURL + "cpc-swish/api/v1/payouts";
+        public static string SandboxRefundRequest = SandboxBaseURL + "swish-cpcapi/api/v2/refunds/";
+        public static string SandboxPayoutRequest = SandboxBaseURL + "swish-cpcapi/api/v1/payouts";
 
         public static string EmulatorBaseURL = "https://mss.cpc.getswish.net/";
         public static string EmulatorPaymentRequest = EmulatorBaseURL + "swish-cpcapi/api/v2/paymentrequests/";
